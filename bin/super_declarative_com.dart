@@ -68,7 +68,7 @@ class _TailwindGenerator implements Finisher {
         ["-i", input, "-o", output],
       );
       if (result.exitCode != 0) {
-        context.log.warn("Failed to run Tailwind CSS compilation - exist code: $result.exitCode");
+        context.log.warn("Failed to run Tailwind CSS compilation - exist code: ${result.exitCode}");
         return;
       }
 
