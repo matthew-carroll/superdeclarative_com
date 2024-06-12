@@ -18,6 +18,9 @@ jobs:
       # Download all the packages that the app uses
       - run: dart pub get
 
+      - name: Make tailwind executable
+        run: chmod +x tailwind
+
       # Build the static site
       - run: dart run bin/super_declarative_com.dart
         env:
