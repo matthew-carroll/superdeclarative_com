@@ -19,7 +19,7 @@ jobs:
       - run: dart pub get
 
       - name: Make tailwind executable
-        run: chmod +x tailwind
+        run: chmod +x tailwindcss
 
       # Build the static site
       - run: dart run bin/super_declarative_com.dart
