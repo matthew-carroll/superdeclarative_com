@@ -17,12 +17,15 @@ jobs:
 
       # Download all the packages that the app uses
       - run: dart pub get
+        working-directory: marketing
 
       - name: Make tailwind executable
         run: chmod +x tailwindcss
+        working-directory: marketing
 
       # Build the static site
       - run: dart run bin/super_declarative_com.dart
+        working-directory: marketing
         env:
           GHUB_DOC_WEBSITE_TOKEN: ${{ vars.GHUB_DOC_WEBSITE_TOKEN }}
 
@@ -30,7 +33,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: ./build
+          path: ./marketing/build
 
   deploy:
     name: Deploy

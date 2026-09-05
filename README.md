@@ -1,7 +1,7 @@
-# SuperDeclarative.com
-This is the marketing website for SuperDeclarative! Flutter services.
+# Website for superdeclarative.com
+Website for superdeclarative.com, which includes the main marketing website, as well as other
+subdomain websites, e.g. a blog.
 
-## Technologies
- * The site is generated with Static Shock.
- * The site is styled with Tailwind - this project includes code that extends Static Shock to support Tailwind.
- * Emails are sent without a server through Emailjs.
+## Projects
+* **marketing/** - The main marketing website (`superdeclarative.com`), built with Dart and Static Shock.
+* **blog/** - The SuperDeclarative blog (`blog.superdeclarative.com`).
