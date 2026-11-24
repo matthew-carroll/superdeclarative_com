@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Energy Ring Rendering Pipeline — Grid Timeline Infographic</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased p-6 md:p-8 m-0">
+  <div class="max-w-[1160px] mx-auto space-y-6">
+
+    <!-- Header & Interactive Controls -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-5 border-b border-[var(--border)]">
+      <div>
+        <div class="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[var(--muted-foreground)] mb-1.5">
+          <span class="w-2 h-2 rounded-full bg-[#FFED4B] shadow-[0_0_8px_#FFED4B]"></span>
+          60 FPS Procedural SVG + 3D Projection Pipeline
+        </div>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-[var(--foreground)]">
+          How an Energy Ring Renders (Step-by-Step Grid Timeline)
+        </h1>
+        <p class="mt-1 text-sm text-[var(--muted-foreground)] max-w-2xl">
+          Each ring is built from 128 polar samples projected in 3D, extruded along normal vectors into 3 concentric SVG <code class="text-[var(--code-foreground)]">fill-rule="evenodd"</code> ribbons, textured with animated fractal noise, and coupled to an unstable neon voltage curve.
+        </p>
+      </div>
+
+      <!-- Live Controls -->
+      <div class="flex flex-wrap items-center gap-3 bg-[var(--card)] border border-[var(--card-border)] rounded-xl px-3.5 py-2.5 text-xs shrink-0">
+        <button id="toggleAnimBtn" class="px-2.5 py-1 rounded-md bg-[var(--primary)] text-[var(--primary-foreground)] font-semibold cursor-pointer">
+          Pause 60fps
+        </button>
+        <label class="flex items-center gap-2 text-[var(--muted-foreground)]">
+          <span>Tilt</span>
+          <input id="tiltSlider" type="range" min="0.12" max="0.45" step="0.01" value="0.24" class="w-20 accent-[var(--primary)]" />
+          <span id="tiltVal" class="font-mono text-[var(--foreground)] w-8">0.24</span>
+        </label>
+        <label class="flex items-center gap-2 text-[var(--muted-foreground)]">
+          <span>Wave Amp</span>
+          <input id="waveSlider" type="range" min="0" max="2.5" step="0.1" value="1.0" class="w-20 accent-[var(--primary)]" />
+          <span id="waveVal" class="font-mono text-[var(--foreground)] w-7">1.0×</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Pipeline Timeline Flow Bar -->
+    <div class="grid grid-cols-4 md:grid-cols-8 gap-1.5 text-xs">
+      <div class="px-2.5 py-1.5 rounded-lg bg-[var(--card)] border border-[var(--card-border)] flex items-center gap-1.5">
+        <span class="font-mono font-bold text-[#FFED4B]">01</span>
+        <span class="truncate text-[var(--muted-foreground)]">Polar Sample</span>
+      </div>
+      <div class="px-2.5 py-1.5 rounded-lg bg-[var(--card)] border border-[var(--card-border)] flex items-center gap-1.5">
+        <span class="font-mono font-bold text-[#FFED4B]">02</span>
+        <span class="truncate text-[var(--muted-foreground)]">3D Foreshorten</span>
+      </div>
+      <div class="px-2.5 py-1.5 rounded-lg bg-[var(--card)] border border-[var(--card-border)] flex items-center gap-1.5">
+        <span class="font-mono font-bold text-[#FFED4B]">03</span>
+        <span class="truncate text-[var(--muted-foreground)]">Normals &amp; Taper</span>
+      </div>
+      <div class="px-2.5 py-1.5 rounded-lg bg-[var(--card)] border border-[var(--card-border)] flex items-center gap-1.5">
+        <span class="font-mono font-bold text-[#FFED4B]">04</span>
+        <span class="truncate text-[var(--muted-foreground)]">Wave Harmonics</span>
+      </div>
+      <div class="px-2.5 py-1.5 rounded-lg bg-[var(--card)] border border-[var(--card-border)] flex items-center gap-1.5">
+        <span class="font-mono font-bold text-[#FFED4B]">05</span>
+        <span class="truncate text-[var(--muted-foreground)]">3-Ribbon Paths</span>
+      </div>
+      <div class="px-2.5 py-1.5 rounded-lg bg-[var(--card)] border border-[var(--card-border)] flex items-center gap-1.5">
+        <span class="font-mono font-bold text-[#FFED4B]">06</span>
+        <span class="truncate text-[var(--muted-foreground)]">Depth Fade (72%)</span>
+      </div>
+      <div class="px-2.5 py-1.5 rounded-lg bg-[var(--card)] border border-[var(--card-border)] flex items-center gap-1.5">
+        <span class="font-mono font-bold text-[#FFED4B]">07</span>
+        <span class="truncate text-[var(--muted-foreground)]">Plasma &amp; Bloom</span>
+      </div>
+      <div class="px-2.5 py-1.5 rounded-lg bg-[var(--card)] border border-[#FFED4B]/50 flex items-center gap-1.5">
+        <span class="font-mono font-bold text-[#FFED4B]">08</span>
+        <span class="truncate font-semibold text-[var(--foreground)]">Neon Composite</span>
+      </div>
+    </div>
+
+    <!-- 8-Step Grid Timeline -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+      <!-- STEP 1 -->
+      <div class="rounded-xl bg-[var(--card)] border border-[var(--card-border)] overflow-hidden flex flex-col">
+        <div class="px-4 py-3 border-b border-[var(--card-border)] flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-[#141417] text-[#FFED4B] font-mono text-xs font-bold border border-[#FFED4B]/30">STEP 1</span>
+            <h2 class="font-semibold text-sm text-[var(--foreground)]">128-Point Polar Sampling</h2>
+          </div>
+          <span class="font-mono text-xs text-[var(--muted-foreground)]">Init / Resize</span>
+        </div>
+        <div class="relative bg-[#141417] h-40 flex items-center justify-center border-b border-[var(--card-border)]">
+          <canvas id="canvasStep1" width="260" height="160" class="w-full h-full"></canvas>
+          <div class="absolute bottom-2 right-2.5 font-mono text-xs text-[#A1A1AA] bg-black/50 px-2 py-0.5 rounded">
+            k = 0..127 (θ = 2πk/128)
+          </div>
+        </div>
+        <div class="p-3.5 text-xs text-[var(--muted-foreground)] space-y-2 flex-1 flex flex-col justify-between">
+          <p>Samples 128 uniform angles around a 2D circle. <code class="text-[var(--code-foreground)]">sin(θ) = +1</code> is closest to the viewer (bottom); <code class="text-[var(--code-foreground)]">sin(θ) = -1</code> is farthest away (top).</p>
+          <div class="font-mono text-xs bg-[var(--background)] px-2.5 py-1.5 rounded border border-[var(--border)] text-[var(--code-foreground)] truncate">
+            x₀ = cos(θ), y₀ = sin(θ)
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="rounded-xl bg-[var(--card)] border border-[var(--card-border)] overflow-hidden flex flex-col">
+        <div class="px-4 py-3 border-b border-[var(--card-border)] flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-[#141417] text-[#FFED4B] font-mono text-xs font-bold border border-[#FFED4B]/30">STEP 2</span>
+            <h2 class="font-semibold text-sm text-[var(--foreground)]">3D Tilt &amp; Foreshortening</h2>
+          </div>
+          <span class="font-mono text-xs text-[var(--muted-foreground)]">Init / Resize</span>
+        </div>
+        <div class="relative bg-[#141417] h-40 flex items-center justify-center border-b border-[var(--card-border)]">
+          <canvas id="canvasStep2" width="260" height="160" class="w-full h-full"></canvas>
+          <div class="absolute bottom-2 right-2.5 font-mono text-xs text-[#A1A1AA] bg-black/50 px-2 py-0.5 rounded">
+            persp = 1 / (1 - 0.28·depth)
+          </div>
+        </div>
+        <div class="p-3.5 text-xs text-[var(--muted-foreground)] space-y-2 flex-1 flex flex-col justify-between">
+          <p>Tilts the ring into 3D (<code class="text-[var(--code-foreground)]">ry = rx · 0.22</code>) and applies perspective division so the front arc widens toward the camera while the back arc narrows.</p>
+          <div class="font-mono text-xs bg-[var(--background)] px-2.5 py-1.5 rounded border border-[var(--border)] text-[var(--code-foreground)] truncate">
+            x = rx·cosT·persp, y = ry·sinT·persp
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="rounded-xl bg-[var(--card)] border border-[var(--card-border)] overflow-hidden flex flex-col">
+        <div class="px-4 py-3 border-b border-[var(--card-border)] flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-[#141417] text-[#FFED4B] font-mono text-xs font-bold border border-[#FFED4B]/30">STEP 3</span>
+            <h2 class="font-semibold text-sm text-[var(--foreground)]">Unit Normals &amp; Depth Taper</h2>
+          </div>
+          <span class="font-mono text-xs text-[var(--muted-foreground)]">Geometry</span>
+        </div>
+        <div class="relative bg-[#141417] h-40 flex items-center justify-center border-b border-[var(--card-border)]">
+          <canvas id="canvasStep3" width="260" height="160" class="w-full h-full"></canvas>
+          <div class="absolute bottom-2 right-2.5 font-mono text-xs text-[#A1A1AA] bg-black/50 px-2 py-0.5 rounded">
+            w: 3.8px (front) → 1.1px (back)
+          </div>
+        </div>
+        <div class="p-3.5 text-xs text-[var(--muted-foreground)] space-y-2 flex-1 flex flex-col justify-between">
+          <p>Computes finite-difference tangent vectors and perpendicular outward unit normals <code class="text-[var(--code-foreground)]">(nx, ny)</code>, scaling base thickness by <code class="text-[var(--code-foreground)]">frontWeight</code>.</p>
+          <div class="font-mono text-xs bg-[var(--background)] px-2.5 py-1.5 rounded border border-[var(--border)] text-[var(--code-foreground)] truncate">
+            baseW = 1.1 + ((sinT+1)/2) · 2.7
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="rounded-xl bg-[var(--card)] border border-[var(--card-border)] overflow-hidden flex flex-col">
+        <div class="px-4 py-3 border-b border-[var(--card-border)] flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-[#141417] text-[#FFED4B] font-mono text-xs font-bold border border-[#FFED4B]/30">STEP 4</span>
+            <h2 class="font-semibold text-sm text-[var(--foreground)]">Traveling Wave Packets</h2>
+          </div>
+          <span class="font-mono text-xs text-[var(--muted-foreground)]">Per Frame</span>
+        </div>
+        <div class="relative bg-[#141417] h-40 flex items-center justify-center border-b border-[var(--card-border)]">
+          <canvas id="canvasStep4" width="260" height="160" class="w-full h-full"></canvas>
+          <div class="absolute bottom-2 right-2.5 font-mono text-xs text-[#A1A1AA] bg-black/50 px-2 py-0.5 rounded">
+            5θ, 11θ, 19θ harmonics
+          </div>
+        </div>
+        <div class="p-3.5 text-xs text-[var(--muted-foreground)] space-y-2 flex-1 flex flex-col justify-between">
+          <p>Three traveling harmonic waves pulse local filament thickness (<code class="text-[var(--code-foreground)]">packetSurge</code>) and jitter vertices along <code class="text-[var(--code-foreground)]">(nx, ny)</code> so the beam arcs.</p>
+          <div class="font-mono text-xs bg-[var(--background)] px-2.5 py-1.5 rounded border border-[var(--border)] text-[var(--code-foreground)] truncate">
+            surge = 1 + .24w₁ + .14w₂ + .08w₃
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 5 -->
+      <div class="rounded-xl bg-[var(--card)] border border-[var(--card-border)] overflow-hidden flex flex-col">
+        <div class="px-4 py-3 border-b border-[var(--card-border)] flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-[#141417] text-[#FFED4B] font-mono text-xs font-bold border border-[#FFED4B]/30">STEP 5</span>
+            <h2 class="font-semibold text-sm text-[var(--foreground)]">3 Concentric Ribbon Paths</h2>
+          </div>
+          <span class="font-mono text-xs text-[var(--muted-foreground)]">Per Frame</span>
+        </div>
+        <div class="relative bg-[#141417] h-40 flex items-center justify-center border-b border-[var(--card-border)]">
+          <canvas id="canvasStep5" width="260" height="160" class="w-full h-full"></canvas>
+          <div class="absolute bottom-2 right-2.5 font-mono text-xs text-[#A1A1AA] bg-black/50 px-2 py-0.5 rounded">
+            Corona 2.35× | Plasma 1× | Core .36×
+          </div>
+        </div>
+        <div class="p-3.5 text-xs text-[var(--muted-foreground)] space-y-2 flex-1 flex flex-col justify-between">
+          <p>Extrudes outer &amp; inner boundaries along <code class="text-[var(--code-foreground)]">±n</code> for 3 nested SVG paths: Amber Corona (<code class="text-[#FF8A00]">#FFB800</code>), Yellow Plasma (<code class="text-[#FFED4B]">#FFED4B</code>), and White Core (<code class="text-[#FFFDF2]">#FFFDF2</code>).</p>
+          <div class="font-mono text-xs bg-[var(--background)] px-2.5 py-1.5 rounded border border-[var(--border)] text-[var(--code-foreground)] truncate">
+            d = "M outer... Z M inner... Z"
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 6 -->
+      <div class="rounded-xl bg-[var(--card)] border border-[var(--card-border)] overflow-hidden flex flex-col">
+        <div class="px-4 py-3 border-b border-[var(--card-border)] flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-[#141417] text-[#FFED4B] font-mono text-xs font-bold border border-[#FFED4B]/30">STEP 6</span>
+            <h2 class="font-semibold text-sm text-[var(--foreground)]">Front-to-Back Depth Fade</h2>
+          </div>
+          <span class="font-mono text-xs text-[var(--muted-foreground)]">SVG Gradient</span>
+        </div>
+        <div class="relative bg-[#141417] h-40 flex items-center justify-center border-b border-[var(--card-border)]">
+          <canvas id="canvasStep6" width="260" height="160" class="w-full h-full"></canvas>
+          <div class="absolute bottom-2 right-2.5 font-mono text-xs text-[#A1A1AA] bg-black/50 px-2 py-0.5 rounded">
+            α: 100% (0%) → 95% (45%) → 0% (72%)
+          </div>
+        </div>
+        <div class="p-3.5 text-xs text-[var(--muted-foreground)] space-y-2 flex-1 flex flex-col justify-between">
+          <p>A vertical <code class="text-[var(--code-foreground)]">&lt;linearGradient&gt;</code> on each layer keeps the front 45% bright, then feathers alpha to <code class="text-[var(--code-foreground)]">0</code> at 72% depth so the back 28% vanishes into fog.</p>
+          <div class="font-mono text-xs bg-[var(--background)] px-2.5 py-1.5 rounded border border-[var(--border)] text-[var(--code-foreground)] truncate">
+            y1="1" (front) → y2="0" (back)
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 7 -->
+      <div class="rounded-xl bg-[var(--card)] border border-[var(--card-border)] overflow-hidden flex flex-col">
+        <div class="px-4 py-3 border-b border-[var(--card-border)] flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-[#141417] text-[#FFED4B] font-mono text-xs font-bold border border-[#FFED4B]/30">STEP 7</span>
+            <h2 class="font-semibold text-sm text-[var(--foreground)]">Fractal Plasma &amp; Dual Bloom</h2>
+          </div>
+          <span class="font-mono text-xs text-[var(--muted-foreground)]">SVG Filters</span>
+        </div>
+        <div class="relative bg-[#141417] h-40 flex items-center justify-center border-b border-[var(--card-border)]">
+          <canvas id="canvasStep7" width="260" height="160" class="w-full h-full"></canvas>
+          <div class="absolute bottom-2 right-2.5 font-mono text-xs text-[#A1A1AA] bg-black/50 px-2 py-0.5 rounded">
+            feTurbulence + feGaussianBlur
+          </div>
+        </div>
+        <div class="p-3.5 text-xs text-[var(--muted-foreground)] space-y-2 flex-1 flex flex-col justify-between">
+          <p>Corona gets a dual Gaussian bloom (<code class="text-[var(--code-foreground)]">σ=2.2</code> + <code class="text-[var(--code-foreground)]">6.5</code>); main filament is warped &amp; grained by 3-octave fractal noise whose frequency shifts every frame.</p>
+          <div class="font-mono text-xs bg-[var(--background)] px-2.5 py-1.5 rounded border border-[var(--border)] text-[var(--code-foreground)] truncate">
+            baseFreq = "0.042±.006 0.088±.012"
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 8 -->
+      <div class="rounded-xl bg-[var(--card)] border-2 border-[#FFED4B]/60 overflow-hidden flex flex-col shadow-[0_0_25px_rgba(255,237,75,0.08)]">
+        <div class="px-4 py-3 border-b border-[var(--card-border)] flex items-center justify-between bg-[#FFED4B]/[0.06]">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-[#FFED4B] text-[#141417] font-mono text-xs font-bold">STEP 8</span>
+            <h2 class="font-semibold text-sm text-[var(--foreground)]">Neon Sputter &amp; Light Sync</h2>
+          </div>
+          <span id="voltageBadge" class="font-mono text-xs text-[#FFED4B]">97% V</span>
+        </div>
+        <div class="relative bg-[#141417] h-40 flex items-center justify-center border-b border-[var(--card-border)]">
+          <canvas id="canvasStep8" width="260" height="160" class="w-full h-full"></canvas>
+          <div class="absolute bottom-2 right-2.5 font-mono text-xs text-[#FFED4B] bg-black/60 px-2 py-0.5 rounded">
+            Final Composite + Icon Tint
+          </div>
+        </div>
+        <div class="p-3.5 text-xs text-[var(--muted-foreground)] space-y-2 flex-1 flex flex-col justify-between">
+          <p><code class="text-[var(--code-foreground)]">neonInstability(t)</code> triggers brief voltage dips every ~2s, flickering all 3 layers and modulating the golden <code class="text-[var(--code-foreground)]">sepia/saturate</code> reflection on orbiting icons.</p>
+          <div class="font-mono text-xs bg-[var(--background)] px-2.5 py-1.5 rounded border border-[var(--border)] text-[var(--code-foreground)] truncate">
+            filter: brightness(V) sepia(.62)
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Telemetry Strip: Live Wave & Voltage Oscilloscope -->
+    <div class="rounded-xl bg-[var(--card)] border border-[var(--card-border)] p-4 flex flex-col md:flex-row items-center gap-4">
+      <div class="md:w-64 shrink-0 space-y-1">
+        <div class="text-xs font-semibold uppercase tracking-wider text-[var(--foreground)] flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-[#FFED4B]"></span>
+          Live Neon Voltage &amp; Entrance Timeline
+        </div>
+        <p class="text-xs text-[var(--muted-foreground)]">
+          Real-time plot of <code class="text-[var(--code-foreground)]">neonInstability(t)</code> driving Step 8. Notice the steady ~0.97 warm hum punctuated by brief double-sputter voltage drops.
+        </p>
+      </div>
+      <div class="flex-1 w-full bg-[#141417] rounded-lg border border-[var(--border)] h-20 relative overflow-hidden">
+        <canvas id="canvasScope" width="760" height="80" class="w-full h-full"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    (function () {
+      let isPlaying = true;
+      let tilt = 0.24;
+      let waveMul = 1.0;
+      const perspectiveStrength = 0.28;
+
+      const toggleBtn = document.getElementById('toggleAnimBtn');
+      const tiltSlider = document.getElementById('tiltSlider');
+      const tiltVal = document.getElementById('tiltVal');
+      const waveSlider = document.getElementById('waveSlider');
+      const waveVal = document.getElementById('waveVal');
+      const voltageBadge = document.getElementById('voltageBadge');
+
+      toggleBtn.addEventListener('click', () => {
+        isPlaying = !isPlaying;
+        toggleBtn.textContent = isPlaying ? 'Pause 60fps' : 'Resume 60fps';
+      });
+      tiltSlider.addEventListener('input', (e) => {
+        tilt = parseFloat(e.target.value);
+        tiltVal.textContent = tilt.toFixed(2);
+      });
+      waveSlider.addEventListener('input', (e) => {
+        waveMul = parseFloat(e.target.value);
+        waveVal.textContent = waveMul.toFixed(1) + '×';
+      });
+
+      const canvases = [1, 2, 3, 4, 5, 6, 7, 8].map((i) => {
+        const c = document.getElementById('canvasStep' + i);
+        return { c, ctx: c.getContext('2d') };
+      });
+      const scopeCanvas = document.getElementById('canvasScope');
+      const scopeCtx = scopeCanvas.getContext('2d');
+      const voltageHistory = new Array(180).fill(0.97);
+
+      function neonInstability(t, seed) {
+        const slowHum = 0.97 + 0.03 * Math.sin(t * 2.4 + seed);
+        const w1 = Math.sin(t * 1.85 + seed * 1.7) * Math.sin(t * 3.1 - seed * 0.9);
+        const w2 = Math.sin(t * 2.95 - seed * 2.3) * Math.cos(t * 4.4 + seed * 1.1);
+        let dip = 0;
+        if (w1 > 0.72) {
+          const rapid = 0.5 + 0.5 * Math.sin(t * 46.0 + seed * 5.0);
+          dip += ((w1 - 0.72) / 0.28) * (0.14 + 0.16 * rapid);
+        }
+        if (w2 > 0.78) {
+          const rapid2 = 0.5 + 0.5 * Math.cos(t * 58.0 - seed * 3.0);
+          dip += ((w2 - 0.78) / 0.22) * (0.10 + 0.14 * rapid2);
+        }
+        return Math.max(0.68, slowHum - Math.min(0.28, dip));
+      }
+
+      function computePoints(rx, ry, steps) {
+        const raw = [];
+        for (let k = 0; k < steps; k++) {
+          const theta = (k * 2 * Math.PI) / steps;
+          const cosT = Math.cos(theta);
+          const sinT = Math.sin(theta);
+          const persp = 1 / (1 - perspectiveStrength * sinT);
+          const x = rx * cosT * persp * (1 - perspectiveStrength * perspectiveStrength);
+          const y = ry * sinT * persp;
+          raw.push({ x, y, theta, cosT, sinT, persp });
+        }
+        const pts = [];
+        for (let k = 0; k < steps; k++) {
+          const prev = raw[(k - 1 + steps) % steps];
+          const curr = raw[k];
+          const next = raw[(k + 1) % steps];
+          const tx = next.x - prev.x;
+          const ty = next.y - prev.y;
+          const len = Math.hypot(tx, ty) || 1;
+          pts.push({
+            ...curr,
+            nx: ty / len,
+            ny: -tx / len,
+          });
+        }
+        return pts;
+      }
+
+      let lastTime = performance.now();
+      let simTime = 0;
+
+      function frame(now) {
+        const dt = (now - lastTime) / 1000;
+        lastTime = now;
+        if (isPlaying) {
+          simTime += dt;
+        }
+
+        const rx = 98;
+        const ry = rx * tilt;
+        const cx = 130;
+        const cy = 76;
+        const pts = computePoints(rx, ry, 96);
+        const flowPhase = simTime * 0.35 * 4.5;
+        const flicker = neonInstability(simTime, 2.17);
+
+        voltageBadge.textContent = Math.round(flicker * 100) + '% V';
+        if (isPlaying) {
+          voltageHistory.push(flicker);
+          if (voltageHistory.length > 180) voltageHistory.shift();
+        }
+
+        // Clear all 8 step canvases
+        for (const { c, ctx } of canvases) {
+          ctx.clearRect(0, 0, c.width, c.height);
+        }
+
+        // --- STEP 1: 2D Polar Circle Sampling ---
+        {
+          const ctx = canvases[0].ctx;
+          const r2d = 46;
+          ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(cx, cy, r2d, 0, Math.PI * 2);
+          ctx.stroke();
+
+          for (let k = 0; k < 32; k++) {
+            const theta = (k * 2 * Math.PI) / 32;
+            const px = cx + r2d * Math.cos(theta);
+            const py = cy + r2d * Math.sin(theta);
+            const isFront = Math.sin(theta) > 0;
+            ctx.fillStyle = isFront ? '#FFED4B' : '#52525B';
+            ctx.beginPath();
+            ctx.arc(px, py, isFront ? 2.2 : 1.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        // --- STEP 2: 3D Tilt & Perspective Foreshortening ---
+        {
+          const ctx = canvases[1].ctx;
+          // Draw un-foreshortened ellipse in dashed gray
+          ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, rx * 0.92, ry, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Draw perspective-foreshortened points
+          for (let k = 0; k < pts.length; k += 2) {
+            const p = pts[k];
+            ctx.fillStyle = p.sinT > 0 ? '#FFED4B' : '#71717A';
+            ctx.beginPath();
+            ctx.arc(cx + p.x, cy + p.y, 1.8 * p.persp, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        // --- STEP 3: Outward Unit Normals & Depth Taper ---
+        {
+          const ctx = canvases[2].ctx;
+          ctx.strokeStyle = 'rgba(255, 237, 75, 0.35)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          pts.forEach((p, idx) => {
+            if (idx === 0) ctx.moveTo(cx + p.x, cy + p.y);
+            else ctx.lineTo(cx + p.x, cy + p.y);
+          });
+          ctx.closePath();
+          ctx.stroke();
+
+          // Draw normal vectors at intervals
+          for (let k = 0; k < pts.length; k += 4) {
+            const p = pts[k];
+            const frontWeight = (p.sinT + 1) / 2;
+            const len = 4 + frontWeight * 12;
+            ctx.strokeStyle = frontWeight > 0.5 ? '#FFED4B' : '#52525B';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(cx + p.x - p.nx * (len * 0.4), cy + p.y - p.ny * (len * 0.4));
+            ctx.lineTo(cx + p.x + p.nx * len, cy + p.y + p.ny * len);
+            ctx.stroke();
+          }
+        }
+
+        // --- STEP 4: Traveling Wave Packets & Normal Jitter ---
+        const modulatedPts = pts.map((p) => {
+          const frontWeight = (p.sinT + 1) / 2;
+          const baseW = 1.2 + frontWeight * 3.2;
+          const wave1 = Math.sin(p.theta * 5 - flowPhase);
+          const wave2 = Math.sin(p.theta * 11 - flowPhase * 1.65 + 1.3);
+          const wave3 = Math.cos(p.theta * 19 + simTime * 9.5);
+          const packetSurge = 1 + waveMul * (0.28 * wave1 + 0.16 * wave2 + 0.10 * wave3) * (0.35 + 0.65 * frontWeight);
+          const jitter = waveMul * (0.85 * wave2 + 0.55 * wave3) * frontWeight;
+          return {
+            ...p,
+            frontWeight,
+            mx: cx + p.x + p.nx * jitter,
+            my: cy + p.y + p.ny * jitter,
+            halfPlasma: Math.max(0.4, (baseW * packetSurge) / 2),
+          };
+        });
+
+        {
+          const ctx = canvases[3].ctx;
+          for (let k = 0; k < modulatedPts.length; k++) {
+            const p = modulatedPts[k];
+            const next = modulatedPts[(k + 1) % modulatedPts.length];
+            ctx.strokeStyle = '#FFED4B';
+            ctx.lineWidth = p.halfPlasma * 1.9;
+            ctx.beginPath();
+            ctx.moveTo(p.mx, p.my);
+            ctx.lineTo(next.mx, next.my);
+            ctx.stroke();
+          }
+        }
+
+        // Helper to draw a ribbon polygon from modulatedPts
+        function traceRibbon(ctx, scale) {
+          ctx.beginPath();
+          for (let k = 0; k < modulatedPts.length; k++) {
+            const p = modulatedPts[k];
+            const ox = p.mx + p.nx * p.halfPlasma * scale;
+            const oy = p.my + p.ny * p.halfPlasma * scale;
+            if (k === 0) ctx.moveTo(ox, oy);
+            else ctx.lineTo(ox, oy);
+          }
+          ctx.closePath();
+          for (let k = 0; k < modulatedPts.length; k++) {
+            const p = modulatedPts[k];
+            const ix = p.mx - p.nx * p.halfPlasma * scale;
+            const iy = p.my - p.ny * p.halfPlasma * scale;
+            if (k === 0) ctx.moveTo(ix, iy);
+            else ctx.lineTo(ix, iy);
+          }
+          ctx.closePath();
+        }
+
+        // --- STEP 5: 3 Concentric Ribbon Layers (Unfiltered) ---
+        {
+          const ctx = canvases[4].ctx;
+          // Layer 1: Corona
+          ctx.fillStyle = 'rgba(255, 168, 0, 0.42)';
+          traceRibbon(ctx, 2.55);
+          ctx.fill('evenodd');
+
+          // Layer 2: Plasma
+          ctx.fillStyle = '#FFED4B';
+          traceRibbon(ctx, 1.0);
+          ctx.fill('evenodd');
+
+          // Layer 3: Core
+          ctx.fillStyle = '#FFFDF2';
+          traceRibbon(ctx, 0.38);
+          ctx.fill('evenodd');
+        }
+
+        // --- STEP 6: Vertical Depth Gradient (Back 28% Fades to 0) ---
+        function createDepthGrad(ctx, c1, c2) {
+          const topY = cy - ry * 1.15;
+          const botY = cy + ry * 1.35;
+          const g = ctx.createLinearGradient(0, botY, 0, topY);
+          g.addColorStop(0.0, c1);
+          g.addColorStop(0.45, c2);
+          g.addColorStop(0.72, 'rgba(0,0,0,0)');
+          g.addColorStop(1.0, 'rgba(0,0,0,0)');
+          return g;
+        }
+
+        {
+          const ctx = canvases[5].ctx;
+          // 72% cutoff horizon indicator line
+          const cutoffY = cy + ry * 1.35 - 0.72 * (ry * 2.5);
+          ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+          ctx.setLineDash([2, 4]);
+          ctx.beginPath();
+          ctx.moveTo(20, cutoffY);
+          ctx.lineTo(240, cutoffY);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.fillStyle = createDepthGrad(ctx, 'rgba(255, 184, 0, 0.5)', 'rgba(255, 138, 0, 0.45)');
+          traceRibbon(ctx, 2.4);
+          ctx.fill('evenodd');
+
+          ctx.fillStyle = createDepthGrad(ctx, '#FFED4B', '#FFD000');
+          traceRibbon(ctx, 1.0);
+          ctx.fill('evenodd');
+
+          ctx.fillStyle = createDepthGrad(ctx, '#FFFDF2', '#FFF3A1');
+          traceRibbon(ctx, 0.36);
+          ctx.fill('evenodd');
+        }
+
+        // --- STEP 7: Dual-Stage Bloom + Fractal Plasma Texture ---
+        {
+          const ctx = canvases[6].ctx;
+          ctx.save();
+          ctx.filter = 'blur(5px)';
+          ctx.fillStyle = createDepthGrad(ctx, 'rgba(255, 184, 0, 0.85)', 'rgba(255, 138, 0, 0.75)');
+          traceRibbon(ctx, 2.5);
+          ctx.fill('evenodd');
+          ctx.restore();
+
+          ctx.save();
+          ctx.filter = 'blur(0.6px)';
+          ctx.fillStyle = createDepthGrad(ctx, '#FFED4B', '#FFD000');
+          traceRibbon(ctx, 1.05);
+          ctx.fill('evenodd');
+          ctx.restore();
+
+          ctx.fillStyle = createDepthGrad(ctx, '#FFFDF2', '#FFF3A1');
+          traceRibbon(ctx, 0.36);
+          ctx.fill('evenodd');
+        }
+
+        // --- STEP 8: Final Composite with Unstable Neon Flicker & Orbiting Icons ---
+        {
+          const ctx = canvases[7].ctx;
+          ctx.save();
+          ctx.globalAlpha = Math.min(1, flicker * 0.85);
+          ctx.filter = 'blur(6px)';
+          ctx.fillStyle = createDepthGrad(ctx, '#FFB800', '#FF8A00');
+          traceRibbon(ctx, 2.5);
+          ctx.fill('evenodd');
+          ctx.restore();
+
+          ctx.save();
+          ctx.globalAlpha = Math.min(1, flicker * 0.98);
+          ctx.filter = 'blur(0.5px)';
+          ctx.fillStyle = createDepthGrad(ctx, '#FFED4B', '#FFD000');
+          traceRibbon(ctx, 1.05);
+          ctx.fill('evenodd');
+          ctx.restore();
+
+          ctx.save();
+          ctx.globalAlpha = Math.min(1, 0.65 + (flicker - 0.85) * 2.2);
+          ctx.fillStyle = createDepthGrad(ctx, '#FFFDF2', '#FFF3A1');
+          traceRibbon(ctx, 0.36);
+          ctx.fill('evenodd');
+          ctx.restore();
+
+          // Draw 4 orbiting icon badges reflecting the neon flicker and fog fade
+          const iconCount = 5;
+          for (let i = 0; i < iconCount; i++) {
+            const theta = simTime * 0.55 + (i * 2 * Math.PI) / iconCount;
+            const cosT = Math.cos(theta);
+            const sinT = Math.sin(theta);
+            const farness = (1 - sinT) / 2;
+            if (farness >= 0.70) continue;
+
+            const persp = 1 / (1 - perspectiveStrength * sinT);
+            const ix = cx + rx * cosT * persp * (1 - perspectiveStrength * perspectiveStrength);
+            const iy = cy + ry * sinT * persp;
+            const rIcon = 7.5 * persp;
+
+            let alpha = 1;
+            if (farness > 0.52) {
+              const t = (farness - 0.52) / 0.18;
+              alpha = Math.max(0, 1 - t * t * (3 - 2 * t));
+            }
+            const fog = Math.pow(Math.min(1, farness / 0.70), 1.35) * 0.88;
+
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            const goldLum = Math.round((1 - fog) * 235 * flicker);
+            ctx.fillStyle = `rgb(${goldLum}, ${Math.round(goldLum * 0.88)}, ${Math.round(goldLum * 0.28)})`;
+            ctx.strokeStyle = `rgba(255, 237, 75, ${(1 - fog) * 0.7})`;
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.roundRect(ix - rIcon, iy - rIcon, rIcon * 2, rIcon * 2, 4 * persp);
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+          }
+        }
+
+        // --- OSCILLOSCOPE: Live Neon Voltage Plot ---
+        {
+          const w = scopeCanvas.width;
+          const h = scopeCanvas.height;
+          scopeCtx.clearRect(0, 0, w, h);
+
+          // Reference grid lines
+          scopeCtx.strokeStyle = 'rgba(255,255,255,0.06)';
+          scopeCtx.lineWidth = 1;
+          scopeCtx.beginPath();
+          scopeCtx.moveTo(0, h * 0.25);
+          scopeCtx.lineTo(w, h * 0.25);
+          scopeCtx.moveTo(0, h * 0.75);
+          scopeCtx.lineTo(w, h * 0.75);
+          scopeCtx.stroke();
+
+          // Voltage waveform
+          scopeCtx.strokeStyle = '#FFED4B';
+          scopeCtx.lineWidth = 2;
+          scopeCtx.beginPath();
+          for (let i = 0; i < voltageHistory.length; i++) {
+            const vx = (i / (voltageHistory.length - 1)) * w;
+            const norm = (voltageHistory[i] - 0.65) / 0.40; // 0.65..1.05
+            const vy = h - Math.max(0.08, Math.min(0.92, norm)) * h;
+            if (i === 0) scopeCtx.moveTo(vx, vy);
+            else scopeCtx.lineTo(vx, vy);
+          }
+          scopeCtx.stroke();
+        }
+
+        requestAnimationFrame(frame);
+      }
+
+      requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>
