@@ -12,8 +12,10 @@ jobs:
       # Checkout the repository
       - uses: actions/checkout@v7
 
-      # Setup a Dart environment
+      # Setup a Dart environment. Jaspr 0.23's build packages don't support Dart 3.14 yet.
       - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: "3.13"
 
       # Download all the packages that the app uses
       - run: dart pub get
