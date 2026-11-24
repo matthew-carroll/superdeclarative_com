@@ -1,0 +1,10 @@
+<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <rect x="62" y="52" width="196" height="42" rx="8" fill="#1F1F25" stroke="#3A3A42" stroke-width="1.5" />
+  <g class="pkg-type"><text x="78" y="78.5" font-size="16" fill="#F7F8FC" textLength="38" lengthAdjust="spacingAndGlyphs">Hello</text></g>
+  <rect class="pkg-typecaret" x="119" y="63" width="2" height="20" fill="#FFED4B" />
+  <g class="pkg-key" style="--d:0"><rect x="62" y="112" width="36" height="36" rx="7" fill="#26262C" /><text x="80" y="135" text-anchor="middle" font-size="14" font-weight="600" fill="#A1A1AA">H</text></g>
+  <g class="pkg-key" style="--d:1"><rect x="102" y="112" width="36" height="36" rx="7" fill="#26262C" /><text x="120" y="135" text-anchor="middle" font-size="14" font-weight="600" fill="#A1A1AA">E</text></g>
+  <g class="pkg-key" style="--d:2"><rect x="142" y="112" width="36" height="36" rx="7" fill="#26262C" /><text x="160" y="135" text-anchor="middle" font-size="14" font-weight="600" fill="#A1A1AA">L</text></g>
+  <g class="pkg-key" style="--d:3"><rect x="182" y="112" width="36" height="36" rx="7" fill="#26262C" /><text x="200" y="135" text-anchor="middle" font-size="14" font-weight="600" fill="#A1A1AA">L</text></g>
+  <g class="pkg-key" style="--d:4"><rect x="222" y="112" width="36" height="36" rx="7" fill="#FFED4B" /><text x="240" y="135" text-anchor="middle" font-size="14" font-weight="600" fill="#141417">O</text></g>
+</svg>

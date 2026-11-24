@@ -1,0 +1,32 @@
+<svg class="contact-ring" viewBox="0 -80 1024 418" fill="none">
+  <defs>
+    <linearGradient id="contactRingGradient" x1="100" y1="0" x2="924" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FF8A00" stop-opacity="0" />
+      <stop offset="0.1" stop-color="#FFB800" />
+      <stop offset="0.5" stop-color="#FFED4B" />
+      <stop offset="0.9" stop-color="#FFB800" />
+      <stop offset="1" stop-color="#FF8A00" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="contactRingCore" x1="100" y1="0" x2="924" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0.08" stop-color="#FFFDF2" stop-opacity="0" />
+      <stop offset="0.35" stop-color="#FFFDF2" stop-opacity="0.8" />
+      <stop offset="0.65" stop-color="#FFFDF2" stop-opacity="0.8" />
+      <stop offset="0.92" stop-color="#FFFDF2" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="contactRingTrack" x1="100" y1="0" x2="924" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8E8E98" stop-opacity="0" />
+      <stop offset="0.12" stop-color="#8E8E98" stop-opacity="0.45" />
+      <stop offset="0.88" stop-color="#8E8E98" stop-opacity="0.45" />
+      <stop offset="1" stop-color="#8E8E98" stop-opacity="0" />
+    </linearGradient>
+    <filter id="contactRingGlow" x="-40" y="-160" width="1104" height="320" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="11" />
+    </filter>
+  </defs>
+  <path d="M100 48A412 100 0 0 1 924 48" stroke="url(#contactRingTrack)" stroke-width="2" />
+  <g class="contact-ring-lit">
+    <path class="contact-ring-charge" d="M100 48A412 100 0 0 1 924 48" pathLength="1" stroke="url(#contactRingGradient)" stroke-width="14" filter="url(#contactRingGlow)" />
+    <path class="contact-ring-charge" d="M100 48A412 100 0 0 1 924 48" pathLength="1" stroke="url(#contactRingGradient)" stroke-width="5" />
+    <path class="contact-ring-charge" d="M100 48A412 100 0 0 1 924 48" pathLength="1" stroke="url(#contactRingCore)" stroke-width="1.6" />
+  </g>
+</svg>
