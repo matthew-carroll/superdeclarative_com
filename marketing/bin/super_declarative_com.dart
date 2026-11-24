@@ -11,6 +11,9 @@ Future<void> main(List<String> arguments) async {
     ..pick(DirectoryPicker.parse("images"))
     ..pick(DirectoryPicker.parse("videos"))
     ..pick(DirectoryPicker.parse("fonts"))
+    // Files at the root need the leading "/", or else they don't match.
+    ..pick(FilePicker.parse("/robots.txt"))
+    ..pick(FilePicker.parse("/sitemap.xml"))
     // All 3rd party behavior is added through plugins, even the behavior
     // shipped with Static Shock.
     ..plugin(const MarkdownPlugin())
@@ -65,7 +68,7 @@ class _TailwindGenerator implements Finisher {
       context.log.info("Generating Tailwind CSS");
       final result = await Process.run(
         "./tailwindcss",
-        ["-i", input, "-o", output],
+        ["-i", input, "-o", output, "--minify"],
       );
       if (result.exitCode != 0) {
         context.log.warn("Failed to run Tailwind CSS compilation - exist code: ${result.exitCode}");

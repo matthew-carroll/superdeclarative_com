@@ -10,7 +10,7 @@ jobs:
     runs-on: macos-latest
     steps:
       # Checkout the repository
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
 
       # Setup a Dart environment
       - uses: dart-lang/setup-dart@v1
@@ -29,9 +29,14 @@ jobs:
         env:
           GHUB_DOC_WEBSITE_TOKEN: ${{ vars.GHUB_DOC_WEBSITE_TOKEN }}
 
+      # The site build only warns when Tailwind fails, which would deploy an unstyled site.
+      - name: Check that the stylesheet was built
+        run: test -s build/styles/tailwind.css
+        working-directory: marketing
+
       # Zip and upload the static site.
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v5
         with:
           path: ./marketing/build
 
@@ -52,4 +57,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v5

@@ -1,6 +1,9 @@
 {
-    "name": "",
-    "short_name": "",
+    "name": "SuperDeclarative!",
+    "short_name": "SuperDeclarative!",
+    "description": "AI-infused app development by Matt Carroll.",
+    "start_url": "/",
+    "scope": "/",
     "icons": [
         {
             "src": "/images/favicon/android-chrome-192x192.png",
@@ -13,7 +16,7 @@
             "type": "image/png"
         }
     ],
-    "theme_color": "#ffffff",
-    "background_color": "#ffffff",
+    "theme_color": "#141417",
+    "background_color": "#141417",
     "display": "standalone"
 }
