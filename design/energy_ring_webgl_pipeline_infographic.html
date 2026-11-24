@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebGL Energy Ring Rendering Pipeline — Step-by-Step Infographic</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased p-6 md:p-8 m-0">
+  <div class="max-w-[1200px] mx-auto space-y-6">
+
+    <!-- Header & Interactive Controls -->
+    <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pb-5 border-b border-[var(--border)]">
+      <div>
+        <div class="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[var(--muted-foreground)] mb-1.5">
+          <span class="w-2 h-2 rounded-full bg-[#FFED4B] shadow-[0_0_8px_#FFED4B]"></span>
+          WebGL GPU Triangle-Strip &amp; Multi-Pass Shader Pipeline (hero_rings.js + hero_beam.js)
+        </div>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-[var(--foreground)]">
+          How the Energy Rings Are Painted (Piece by Piece, Step by Step)
+        </h1>
+        <p class="mt-1.5 text-sm text-[var(--muted-foreground)] max-w-3xl">
+          Instead of running CPU-bound SVG filters across the entire ring bounding box, the updated renderer builds a 258-vertex <code class="text-[var(--code-foreground)]">gl.TRIANGLE_STRIP</code> and executes shaders <strong>only on the pixels along the beam</strong>—combining a 2-stage FBO separable Gaussian bloom with a single-pass GPU fractal noise + ragged-edge filament shader.
+        </p>
+      </div>
+
+      <!-- Live Controls -->
+      <div class="flex flex-wrap items-center gap-3 bg-[var(--card)] border border-[var(--card-border)] rounded-xl px-3.5 py-2.5 text-xs shrink-0">
+        <button id="toggleAnimBtn" class="px-2.5 py-1 rounded-md bg-[var(--primary)] text-[var(--primary-foreground)] font-semibold cursor-pointer">
+          Pause 60fps
+        </button>
+        <label class="flex items-center gap-1.5 text-[var(--muted-foreground)] cursor-pointer select-none">
+          <input id="wireframeToggle" type="checkbox" class="accent-[var(--primary)]" />
+          <span>Show Strip Mesh</span>
+        </label>
+        <label class="flex items-center gap-2 text-[var(--muted-foreground)]">
+          <span>Wave Amp</span>
+          <input id="waveSlider" type="range" min="0" max="2.5" step="0.1" value="1.0" class="w-16 accent-[var(--primary)]" />
+          <span id="waveVal" class="font-mono text-[var(--foreground)] w-7">1.0×</span>
+        </label>
+        <label class="flex items-center gap-2 text-[var(--muted-foreground)]">
+          <span>Displacement</span>
+          <input id="dispSlider" type="range" min="0" max="5.0" step="0.2" value="2.2" class="w-16 accent-[var(--primary)]" />
+          <span id="dispVal" class="font-mono text-[var(--foreground)] w-8">2.2px</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Architecture Split Overview Banner: CPU vs GPU -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 text-xs">
+      <div class="md:col-span-3 rounded-xl bg-[var(--card)] border border-[var(--card-border)] p-3.5 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-1">
+          <span class="font-mono font-bold uppercase tracking-wider text-[#FFED4B]">Phase A · CPU (hero_rings.js)</span>
+          <span class="font-mono text-[var(--muted-foreground)]">Steps 1 – 2</span>
+        </div>
+        <p class="text-[var(--muted-foreground)] leading-relaxed">
+          Precomputes the 128-point perspective oval &amp; tight visible bounding box (<code class="text-[var(--code-foreground)]">layOutBeam</code>), then packs a 1,548-float <code class="text-[var(--code-foreground)]">Float32Array</code> each frame with wave surges &amp; normal jitter.
+        </p>
+      </div>
+      <div class="md:col-span-6 rounded-xl bg-[var(--card)] border border-[var(--card-border)] p-3.5 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-1">
+          <span class="font-mono font-bold uppercase tracking-wider text-[#FF8A00]">Phase B · WebGL Shaders (hero_beam.js)</span>
+          <span class="font-mono text-[var(--muted-foreground)]">Steps 3 – 7</span>
+        </div>
+        <p class="text-[var(--muted-foreground)] leading-relaxed">
+          <code class="text-[var(--code-foreground)]">stripVertexShader</code> extrudes the ribbon to <code class="text-[var(--code-foreground)]">±(vHalf·uWidth + uPad)</code>. Offscreen FBOs render &amp; blur the Tight (<code class="text-[var(--code-foreground)]">σ=2.2</code>) and Wide (<code class="text-[var(--code-foreground)]">σ=6.5</code>) Corona, then <code class="text-[var(--code-foreground)]">filamentFragmentShader</code> paints the fractal-warped Plasma &amp; Core in one pass.
+        </p>
+      </div>
+      <div class="md:col-span-3 rounded-xl bg-[var(--card)] border border-[#FFED4B]/50 p-3.5 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-1">
+          <span class="font-mono font-bold uppercase tracking-wider text-[#FFFDF2]">Phase C · Composite &amp; Light</span>
+          <span class="font-mono text-[var(--muted-foreground)]">Step 8</span>
+        </div>
+        <p class="text-[var(--muted-foreground)] leading-relaxed">
+          Premultiplied alpha blending (<code class="text-[var(--code-foreground)]">ONE, ONE_MINUS_SRC_ALPHA</code>) composites the layers while <code class="text-[var(--code-foreground)]">neonInstability(t)</code> flickers the beam and orbiting icons.
+        </p>
+      </div>
+    </div>
+
+    <!-- 8-Step Grid Timeline -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+      <!-- STEP 1 -->
+      <div class="rounded-xl bg-[var(--card)] border border-[var(--card-border)] overflow-hidden flex flex-col">
+        <div class="px-4 py-3 border-b border-[var(--card-border)] flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-[#141417] text-[#FFED4B] font-mono text-xs font-bold border border-[#FFED4B]/30">STEP 1</span>
+            <h2 class="font-semibold text-sm text-[var(--foreground)]">3D Oval &amp; Clipped Canvas</h2>
+          </div>
+          <span class="font-mono text-xs text-[var(--muted-foreground)]">Resize</span>
+        </div>
+        <div class="relative bg-[#141417] h-44 flex items-center justify-center border-b border-[var(--card-border)]">
+          <canvas id="canvasStep1" width="270" height="176" class="w-full h-full"></canvas>
+          <div class="absolute bottom-2 right-2.5 font-mono text-xs text-[#A1A1AA] bg-black/65 px-2 py-0.5 rounded">
+            73% depth box + 28px pad
+          </div>
+        </div>
+        <div class="p-3.5 text-xs text-[var(--muted-foreground)] space-y-2 flex-1 flex flex-col justify-between">
+          <p><code class="text-[var(--code-foreground)]">computeRingBaseGeometry</code> projects 128 points &amp; normals <code class="text-[var(--code-foreground)]">(nx, ny)</code>. <code class="text-[var(--code-foreground)]">layOutBeam</code> sizes the WebGL canvas tightly to the front 73% of the oval (plus 28px glow reach) snapped to device pixels.</p>
+          <div class="font-mono text-xs bg-[var(--background)] px-2.5 py-1.5 rounded border border-[var(--border)] text-[var(--code-foreground)] truncate">
+            top = front - (front-back)·0.73 - 28
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="rounded-xl bg-[var(--card)] border border-[var(--card-border)] overflow-hidden flex flex-col">
+        <div class="px-4 py-3 border-b border-[var(--card-border)] flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-[#141417] text-[#FFED4B] font-mono text-xs font-bold border border-[#FFED4B]/30">STEP 2</span>
+            <h2 class="font-semibold text-sm text-[var(--foreground)]">Wave Packet Vertex Buffer</h2>
+          </div>
+          <span class="font-mono text-xs text-[var(--muted-foreground)]">CPU → VBO</span>
+        </div>
+        <div class="relative bg-[#141417] h-44 flex items-center justify-center border-b border-[var(--card-border)]">
+          <canvas id="canvasStep2" width="270" height="176" class="w-full h-full"></canvas>
+          <div class="absolute bottom-2 right-2.5 font-mono text-xs text-[#A1A1AA] bg-black/65 px-2 py-0.5 rounded">
+            Float32Array((128+1)×2×6)
+          </div>
+        </div>
+        <div class="p-3.5 text-xs text-[var(--muted-foreground)] space-y-2 flex-1 flex flex-col justify-between">
+          <p>Every frame, 3 traveling waves (<code class="text-[var(--code-foreground)]">5θ, 11θ, 19θ</code>) pulse <code class="text-[var(--code-foreground)]">halfPlasma</code> and jitter <code class="text-[var(--code-foreground)]">(cx, cy)</code>. Writes two vertices per step (<code class="text-[var(--code-foreground)]">side = +1, -1</code>) with 6 floats each into a preallocated VBO.</p>
+          <div class="font-mono text-xs bg-[var(--background)] px-2.5 py-1.5 rounded border border-[var(--border)] text-[var(--code-foreground)] truncate">
+            [cx, cy, nx, ny, halfPlasma, ±1]
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="rounded-xl bg-[var(--card)] border border-[var(--card-border)] overflow-hidden flex flex-col">
+        <div class="px-4 py-3 border-b border-[var(--card-border)] flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-[#141417] text-[#FFED4B] font-mono text-xs font-bold border border-[#FFED4B]/30">STEP 3</span>
+            <h2 class="font-semibold text-sm text-[var(--foreground)]">GPU Triangle-Strip Extrusion</h2>
+          </div>
+          <span class="font-mono text-xs text-[var(--muted-foreground)]">Vertex Shader</span>
+        </div>
+        <div class="relative bg-[#141417] h-44 flex items-center justify-center border-b border-[var(--card-border)]">
+          <canvas id="canvasStep3" width="270" height="176" class="w-full h-full"></canvas>
+          <div class="absolute bottom-2 right-2.5 font-mono text-xs text-[#A1A1AA] bg-black/65 px-2 py-0.5 rounded">
+            gl.drawArrays(TRIANGLE_STRIP, 258)
+          </div>
+        </div>
+        <div class="p-3.5 text-xs text-[var(--muted-foreground)] space-y-2 flex-1 flex flex-col justify-between">
+          <p><code class="text-[var(--code-foreground)]">stripVertexShader</code> extrudes the centerline along <code class="text-[var(--code-foreground)]">vNormal</code> by <code class="text-[var(--code-foreground)]">(vHalf·uWidth + uPad)·side</code>. Shaders only execute inside this narrow ribbon strip, skipping empty interior pixels.</p>
+          <div class="font-mono text-xs bg-[var(--background)] px-2.5 py-1.5 rounded border border-[var(--border)] text-[var(--code-foreground)] truncate">
+            vPos = aLine.xy + vNormal * vDistance
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="rounded-xl bg-[var(--card)] border border-[var(--card-border)] overflow-hidden flex flex-col">
+        <div class="px-4 py-3 border-b border-[var(--card-border)] flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-[#141417] text-[#FFED4B] font-mono text-xs font-bold border border-[#FFED4B]/30">STEP 4</span>
+            <h2 class="font-semibold text-sm text-[var(--foreground)]">AA Coverage &amp; Unblurred Glow</h2>
+          </div>
+          <span class="font-mono text-xs text-[var(--muted-foreground)]">Glow Pass</span>
+        </div>
+        <div class="relative bg-[#141417] h-44 flex items-center justify-center border-b border-[var(--card-border)]">
+          <canvas id="canvasStep4" width="270" height="176" class="w-full h-full"></canvas>
+          <div class="absolute bottom-2 right-2.5 font-mono text-xs text-[#A1A1AA] bg-black/65 px-2 py-0.5 rounded">
+            uWidth = 2.35× | depthGradient
+          </div>
+        </div>
+        <div class="p-3.5 text-xs text-[var(--muted-foreground)] space-y-2 flex-1 flex flex-col justify-between">
+          <p><code class="text-[var(--code-foreground)]">glowFragmentShader</code> paints the unblurred amber corona (<code class="text-[#FFB800]">#FFB800</code> → <code class="text-[#FF8A00]">#FF8A00</code>) into FBO target 0, multiplying sub-pixel <code class="text-[var(--code-foreground)]">coverage()</code> by <code class="text-[var(--code-foreground)]">depthGradient()</code> (fading out at 72%).</p>
+          <div class="font-mono text-xs bg-[var(--background)] px-2.5 py-1.5 rounded border border-[var(--border)] text-[var(--code-foreground)] truncate">
+            cov = clamp(d+h+.5) - clamp(d-h+.5)
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 5 -->
+      <div class="rounded-xl bg-[var(--card)] border border-[var(--card-border)] overflow-hidden flex flex-col">
+        <div class="px-4 py-3 border-b border-[var(--card-border)] flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-[#141417] text-[#FFED4B] font-mono text-xs font-bold border border-[#FFED4B]/30">STEP 5</span>
+            <h2 class="font-semibold text-sm text-[var(--foreground)]">Dual Separable FBO Bloom</h2>
+          </div>
+          <span class="font-mono text-xs text-[var(--muted-foreground)]">Blur + Corona</span>
+        </div>
+        <div class="relative bg-[#141417] h-44 flex items-center justify-center border-b border-[var(--card-border)]">
+          <canvas id="canvasStep5" width="270" height="176" class="w-full h-full"></canvas>
+          <div class="absolute bottom-2 right-2.5 font-mono text-xs text-[#A1A1AA] bg-black/65 px-2 py-0.5 rounded">
+            Tight σ=2.2 (≤2×) + Wide σ=6.5 (1×)
+          </div>
+        </div>
+        <div class="p-3.5 text-xs text-[var(--muted-foreground)] space-y-2 flex-1 flex flex-col justify-between">
+          <p>Blurs H then V in ping-pong FBOs using 10 bilinear-merged tap pairs (<code class="text-[var(--code-foreground)]">createBlurKernel</code>). Wide blur runs at <code class="text-[var(--code-foreground)]">1×</code> CSS resolution for speed. <code class="text-[var(--code-foreground)]">coronaFragmentShader</code> blends Tight over Wide.</p>
+          <div class="font-mono text-xs bg-[var(--background)] px-2.5 py-1.5 rounded border border-[var(--border)] text-[var(--code-foreground)] truncate">
+            (tight + wide * (1 - tight.a)) * uOpacity
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 6 -->
+      <div class="rounded-xl bg-[var(--card)] border border-[var(--card-border)] overflow-hidden flex flex-col">
+        <div class="px-4 py-3 border-b border-[var(--card-border)] flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-[#141417] text-[#FFED4B] font-mono text-xs font-bold border border-[#FFED4B]/30">STEP 6</span>
+            <h2 class="font-semibold text-sm text-[var(--foreground)]">256² Noise Lattice &amp; Plasma</h2>
+          </div>
+          <span class="font-mono text-xs text-[var(--muted-foreground)]">Filament Pass</span>
+        </div>
+        <div class="relative bg-[#141417] h-44 flex items-center justify-center border-b border-[var(--card-border)]">
+          <canvas id="canvasStep6" width="270" height="176" class="w-full h-full"></canvas>
+          <div class="absolute bottom-2 right-2.5 font-mono text-xs text-[#A1A1AA] bg-black/65 px-2 py-0.5 rounded">
+            3-Octave Perlin + Ragged Edge
+          </div>
+        </div>
+        <div class="p-3.5 text-xs text-[var(--muted-foreground)] space-y-2 flex-1 flex flex-col justify-between">
+          <p>Samples 256×256 <code class="text-[var(--code-foreground)]">uRedGreenLattice</code> &amp; <code class="text-[var(--code-foreground)]">uAlphaLattice</code> textures across 3 octaves. Displaces <code class="text-[var(--code-foreground)]">vDistance</code> by <code class="text-[var(--code-foreground)]">2.2px</code>, modulates alpha by <code class="text-[var(--code-foreground)]">grain</code>, and layers quantized sharp pixels over a <code class="text-[var(--code-foreground)]">gaussianEdge</code> soft blur.</p>
+          <div class="font-mono text-xs bg-[var(--background)] px-2.5 py-1.5 rounded border border-[var(--border)] text-[var(--code-foreground)] truncate">
+            plasma + soft * (1.0 - plasma.a)
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 7 -->
+      <div class="rounded-xl bg-[var(--card)] border border-[var(--card-border)] overflow-hidden flex flex-col">
+        <div class="px-4 py-3 border-b border-[var(--card-border)] flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-[#141417] text-[#FFED4B] font-mono text-xs font-bold border border-[#FFED4B]/30">STEP 7</span>
+            <h2 class="font-semibold text-sm text-[var(--foreground)]">Incandescent Core Fusion</h2>
+          </div>
+          <span class="font-mono text-xs text-[var(--muted-foreground)]">Same Shader</span>
+        </div>
+        <div class="relative bg-[#141417] h-44 flex items-center justify-center border-b border-[var(--card-border)]">
+          <canvas id="canvasStep7" width="270" height="176" class="w-full h-full"></canvas>
+          <div class="absolute bottom-2 right-2.5 font-mono text-xs text-[#A1A1AA] bg-black/65 px-2 py-0.5 rounded">
+            0.36× Core + Plasma in 1 draw
+          </div>
+        </div>
+        <div class="p-3.5 text-xs text-[var(--muted-foreground)] space-y-2 flex-1 flex flex-col justify-between">
+          <p>In the exact same <code class="text-[var(--code-foreground)]">filamentFragmentShader</code> invocation, computes the un-displaced hot white-gold core (<code class="text-[#FFFDF2]">#FFFDF2</code> → <code class="text-[#FFF3A1]">#FFF3A1</code> at <code class="text-[var(--code-foreground)]">0.36×</code> width) and composites it over the textured plasma.</p>
+          <div class="font-mono text-xs bg-[var(--background)] px-2.5 py-1.5 rounded border border-[var(--border)] text-[var(--code-foreground)] truncate">
+            core + plasma * (1.0 - core.a)
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 8 -->
+      <div class="rounded-xl bg-[var(--card)] border-2 border-[#FFED4B]/60 overflow-hidden flex flex-col shadow-[0_0_25px_rgba(255,237,75,0.08)]">
+        <div class="px-4 py-3 border-b border-[var(--card-border)] flex items-center justify-between bg-[#FFED4B]/[0.06]">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-[#FFED4B] text-[#141417] font-mono text-xs font-bold">STEP 8</span>
+            <h2 class="font-semibold text-sm text-[var(--foreground)]">Final Blend &amp; Light Sync</h2>
+          </div>
+          <span id="voltageBadge" class="font-mono text-xs text-[#FFED4B]">97% V</span>
+        </div>
+        <div class="relative bg-[#141417] h-44 flex items-center justify-center border-b border-[var(--card-border)]">
+          <canvas id="canvasStep8" width="270" height="176" class="w-full h-full"></canvas>
+          <div class="absolute bottom-2 right-2.5 font-mono text-xs text-[#FFED4B] bg-black/65 px-2 py-0.5 rounded">
+            Corona + Filament + Icon Reflection
+          </div>
+        </div>
+        <div class="p-3.5 text-xs text-[var(--muted-foreground)] space-y-2 flex-1 flex flex-col justify-between">
+          <p>Hardware premultiplied blend (<code class="text-[var(--code-foreground)]">gl.ONE, gl.ONE_MINUS_SRC_ALPHA</code>) composites the Filament pass over the Corona pass. <code class="text-[var(--code-foreground)]">neonInstability(t)</code> drives all 3 opacities and tints the orbiting icons &amp; iPhone.</p>
+          <div class="font-mono text-xs bg-[var(--background)] px-2.5 py-1.5 rounded border border-[var(--border)] text-[var(--code-foreground)] truncate">
+            coreOp = .65 + (flicker - .85) * 2.2
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Deep-Dive Panel: Cross-Section Anatomy & Live Neon Voltage Telemetry -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+      <!-- Cross-Sectional Ribbon Anatomy -->
+      <div class="lg:col-span-5 rounded-xl bg-[var(--card)] border border-[var(--card-border)] p-4 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-[var(--foreground)]">
+            Beam Cross-Section Profile (Across Normal Vector vDistance)
+          </span>
+          <span class="font-mono text-xs text-[var(--muted-foreground)]">uWidth &amp; uPad</span>
+        </div>
+        <div class="bg-[#141417] rounded-lg border border-[var(--border)] h-24 relative overflow-hidden">
+          <canvas id="canvasProfile" width="460" height="96" class="w-full h-full"></canvas>
+        </div>
+        <div class="mt-2 flex items-center justify-between text-xs text-[var(--muted-foreground)] font-mono">
+          <span><span class="inline-block w-2 h-2 rounded-full bg-[#FF8A00] mr-1"></span>Corona: 2.35× + 19.5px blur pad</span>
+          <span><span class="inline-block w-2 h-2 rounded-full bg-[#FFED4B] mr-1"></span>Plasma: 1.0× ± 2.2px warp</span>
+          <span><span class="inline-block w-2 h-2 rounded-full bg-[#FFFDF2] mr-1"></span>Core: 0.36×</span>
+        </div>
+      </div>
+
+      <!-- Live Neon Voltage & Opacity Response Oscilloscope -->
+      <div class="lg:col-span-7 rounded-xl bg-[var(--card)] border border-[var(--card-border)] p-4 flex flex-col justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+          <div class="text-xs font-semibold uppercase tracking-wider text-[var(--foreground)] flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-[#FFED4B]"></span>
+            Live Layer Opacity Telemetry (<code class="font-mono text-[var(--code-foreground)]">neonInstability(t)</code>)
+          </div>
+          <div class="flex items-center gap-3 text-xs font-mono">
+            <span class="text-[#FFFDF2]">━ Core (2.2× gain)</span>
+            <span class="text-[#FFED4B]">━ Plasma (0.96×)</span>
+            <span class="text-[#FF8A00]">━ Corona (0.72×)</span>
+          </div>
+        </div>
+        <div class="bg-[#141417] rounded-lg border border-[var(--border)] h-24 relative overflow-hidden">
+          <canvas id="canvasScope" width="640" height="96" class="w-full h-full"></canvas>
+        </div>
+        <p class="mt-2 text-xs text-[var(--muted-foreground)]">
+          Notice how the incandescent white core (<code class="text-[var(--code-foreground)]">0.65 + (flicker - 0.85) * 2.2</code>) dips most dramatically during voltage sputters, while the outer amber corona holds a softer floor.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    (function () {
+      let isPlaying = true;
+      let showWireframe = false;
+      let waveMul = 1.0;
+      let dispScale = 2.2;
+      const tilt = 0.24;
+      const perspectiveStrength = 0.28;
+      const HERO_GLOW_WIDTH = 2.35;
+      const HERO_CORE_WIDTH = 0.36;
+
+      const toggleBtn = document.getElementById('toggleAnimBtn');
+      const wireframeToggle = document.getElementById('wireframeToggle');
+      const waveSlider = document.getElementById('waveSlider');
+      const waveVal = document.getElementById('waveVal');
+      const dispSlider = document.getElementById('dispSlider');
+      const dispVal = document.getElementById('dispVal');
+      const voltageBadge = document.getElementById('voltageBadge');
+
+      toggleBtn.addEventListener('click', () => {
+        isPlaying = !isPlaying;
+        toggleBtn.textContent = isPlaying ? 'Pause 60fps' : 'Resume 60fps';
+      });
+      wireframeToggle.addEventListener('change', (e) => {
+        showWireframe = e.target.checked;
+      });
+      waveSlider.addEventListener('input', (e) => {
+        waveMul = parseFloat(e.target.value);
+        waveVal.textContent = waveMul.toFixed(1) + '×';
+      });
+      dispSlider.addEventListener('input', (e) => {
+        dispScale = parseFloat(e.target.value);
+        dispVal.textContent = dispScale.toFixed(1) + 'px';
+      });
+
+      const canvases = [1, 2, 3, 4, 5, 6, 7, 8].map((i) => {
+        const c = document.getElementById('canvasStep' + i);
+        return { c, ctx: c.getContext('2d') };
+      });
+      const profileCanvas = document.getElementById('canvasProfile');
+      const profileCtx = profileCanvas.getContext('2d');
+      const scopeCanvas = document.getElementById('canvasScope');
+      const scopeCtx = scopeCanvas.getContext('2d');
+
+      const historyLen = 180;
+      const historyGlow = new Array(historyLen).fill(0.70);
+      const historyPlasma = new Array(historyLen).fill(0.93);
+      const historyCore = new Array(historyLen).fill(0.91);
+
+      function neonInstability(t, seed) {
+        const slowHum = 0.97 + 0.03 * Math.sin(t * 2.4 + seed);
+        const w1 = Math.sin(t * 1.85 + seed * 1.7) * Math.sin(t * 3.1 - seed * 0.9);
+        const w2 = Math.sin(t * 2.95 - seed * 2.3) * Math.cos(t * 4.4 + seed * 1.1);
+        let dip = 0;
+        if (w1 > 0.72) {
+          const rapid = 0.5 + 0.5 * Math.sin(t * 46.0 + seed * 5.0);
+          dip += ((w1 - 0.72) / 0.28) * (0.14 + 0.16 * rapid);
+        }
+        if (w2 > 0.78) {
+          const rapid2 = 0.5 + 0.5 * Math.cos(t * 58.0 - seed * 3.0);
+          dip += ((w2 - 0.78) / 0.22) * (0.10 + 0.14 * rapid2);
+        }
+        return Math.max(0.68, slowHum - Math.min(0.28, dip));
+      }
+
+      // 3-octave pseudo-fractal noise helper matching filamentFragmentShader's fractalNoise
+      function pseudoFractalNoise(x, y, freqX, freqY) {
+        let sumX = 0, sumY = 0, sumA = 0;
+        let amp = 1.0;
+        let px = x * freqX;
+        let py = y * freqY;
+        for (let oct = 0; oct < 3; oct++) {
+          sumX += amp * Math.sin(px * 6.28 + Math.cos(py * 5.13 + oct * 1.7));
+          sumY += amp * Math.cos(py * 6.28 - Math.sin(px * 4.87 + oct * 2.3));
+          sumA += amp * Math.sin((px + py) * 5.5 + oct * 3.1);
+          px *= 2.0;
+          py *= 2.0;
+          amp *= 0.5;
+        }
+        return {
+          nx: Math.max(0, Math.min(1, (sumX * 0.57 + 1) * 0.5)),
+          ny: Math.max(0, Math.min(1, (sumY * 0.57 + 1) * 0.5)),
+          na: Math.max(0, Math.min(1, (sumA * 0.57 + 1) * 0.5)),
+        };
+      }
+
+      function computeBaseGeometry(rx, ry, steps) {
+        const raw = [];
+        for (let k = 0; k < steps; k++) {
+          const theta = (k * 2 * Math.PI) / steps;
+          const cosT = Math.cos(theta);
+          const sinT = Math.sin(theta);
+          const persp = 1 / (1 - perspectiveStrength * sinT);
+          const x = rx * cosT * persp * (1 - perspectiveStrength * perspectiveStrength);
+          const y = ry * sinT * persp;
+          raw.push({ x, y, theta, cosT, sinT, persp });
+        }
+        const pts = [];
+        for (let k = 0; k < steps; k++) {
+          const prev = raw[(k - 1 + steps) % steps];
+          const curr = raw[k];
+          const next = raw[(k + 1) % steps];
+          const tx = next.x - prev.x;
+          const ty = next.y - prev.y;
+          const len = Math.hypot(tx, ty) || 1;
+          pts.push({
+            ...curr,
+            nx: ty / len,
+            ny: -tx / len,
+          });
+        }
+        return pts;
+      }
+
+      let lastTime = performance.now();
+      let simTime = 0;
+
+      function frame(now) {
+        const dt = (now - lastTime) / 1000;
+        lastTime = now;
+        if (isPlaying) {
+          simTime += dt;
+        }
+
+        const rx = 100;
+        const ry = rx * tilt;
+        const cx = 135;
+        const cy = 84;
+        const basePts = computeBaseGeometry(rx, ry, 96);
+        const seedOffset = 2.17;
+        const flowPhase = simTime * 0.35 * 4.5 + seedOffset;
+        const flicker = neonInstability(simTime, seedOffset);
+
+        const glowOpacity = Math.min(1, flicker * 0.72);
+        const plasmaOpacity = Math.min(1, flicker * 0.96);
+        const coreOpacity = Math.min(1, 0.65 + (flicker - 0.85) * 2.2);
+
+        const freqX = 0.042 + 0.006 * Math.sin(simTime * 3.1 + seedOffset);
+        const freqY = 0.088 + 0.012 * Math.cos(simTime * 4.7 + seedOffset);
+
+        voltageBadge.textContent = Math.round(flicker * 100) + '% V';
+        if (isPlaying) {
+          historyGlow.push(glowOpacity);
+          historyPlasma.push(plasmaOpacity);
+          historyCore.push(coreOpacity);
+          if (historyGlow.length > historyLen) {
+            historyGlow.shift();
+            historyPlasma.shift();
+            historyCore.shift();
+          }
+        }
+
+        for (const { c, ctx } of canvases) {
+          ctx.clearRect(0, 0, c.width, c.height);
+        }
+
+        // Build per-frame vertices matching updateEnergyBeamFrame
+        const framePts = basePts.map((p) => {
+          const frontWeight = (p.sinT + 1) / 2;
+          const baseW = 1.1 + frontWeight * (3.8 - 1.1);
+          const wave1 = Math.sin(p.theta * 5 - flowPhase);
+          const wave2 = Math.sin(p.theta * 11 - flowPhase * 1.65 + 1.3);
+          const wave3 = Math.cos(p.theta * 19 + simTime * 9.5 + seedOffset);
+          const packetSurge = 1 + waveMul * (0.24 * wave1 + 0.14 * wave2 + 0.08 * wave3) * (0.35 + 0.65 * frontWeight);
+          const jitter = waveMul * (0.35 * wave2 + 0.25 * wave3) * frontWeight;
+          const px = cx + p.x + p.nx * jitter;
+          const py = cy + p.y + p.ny * jitter;
+          const halfPlasma = Math.max(0.4, (baseW * packetSurge) / 2);
+
+          // Sample procedural fractal noise for displacement
+          const fn = pseudoFractalNoise(px, py, freqX * 1.4, freqY * 1.4);
+          const dispX = dispScale * (fn.nx - 0.5);
+          const dispY = dispScale * (fn.ny - 0.5);
+          const normalDisp = p.nx * dispX + p.ny * dispY;
+          const grain = Math.max(0, Math.min(1, 0.65 * fn.na + 0.55));
+
+          return {
+            ...p,
+            frontWeight,
+            px,
+            py,
+            halfPlasma,
+            normalDisp,
+            grain,
+          };
+        });
+
+        // Compute top & bottom span for depthGradient
+        const ys = basePts.map((p) => cy + p.y);
+        const frontY = Math.max(...ys);
+        const backY = Math.min(...ys);
+        const boundTopY = frontY - (frontY - backY) * 0.73 - 14;
+        const boundBotY = frontY + 14;
+
+        function createDepthGrad(ctx, cFront, cMid) {
+          const g = ctx.createLinearGradient(0, frontY + 6, 0, backY - 4);
+          g.addColorStop(0.0, cFront);
+          g.addColorStop(0.45, cMid);
+          g.addColorStop(0.72, 'rgba(0,0,0,0)');
+          g.addColorStop(1.0, 'rgba(0,0,0,0)');
+          return g;
+        }
+
+        function traceLayerRibbon(ctx, widthMul, pad, useDisplaced) {
+          ctx.beginPath();
+          for (let k = 0; k < framePts.length; k++) {
+            const p = framePts[k];
+            const d = p.halfPlasma * widthMul + pad + (useDisplaced ? p.normalDisp : 0);
+            const ox = p.px + p.nx * d;
+            const oy = p.py + p.ny * d;
+            if (k === 0) ctx.moveTo(ox, oy);
+            else ctx.lineTo(ox, oy);
+          }
+          ctx.closePath();
+          for (let k = 0; k < framePts.length; k++) {
+            const p = framePts[k];
+            const d = -(p.halfPlasma * widthMul + pad) + (useDisplaced ? p.normalDisp : 0);
+            const ix = p.px + p.nx * d;
+            const iy = p.py + p.ny * d;
+            if (k === 0) ctx.moveTo(ix, iy);
+            else ctx.lineTo(ix, iy);
+          }
+          ctx.closePath();
+        }
+
+        function drawTriangleStripMesh(ctx, widthMul, pad, strokeStyle) {
+          ctx.strokeStyle = strokeStyle;
+          ctx.lineWidth = 0.75;
+          ctx.beginPath();
+          for (let k = 0; k < framePts.length; k += 2) {
+            const p = framePts[k];
+            const next = framePts[(k + 2) % framePts.length];
+            const reach = p.halfPlasma * widthMul + pad;
+            const nextReach = next.halfPlasma * widthMul + pad;
+            const ox = p.px + p.nx * reach;
+            const oy = p.py + p.ny * reach;
+            const ix = p.px - p.nx * reach;
+            const iy = p.py - p.ny * reach;
+            const nox = next.px + next.nx * nextReach;
+            const noy = next.py + next.ny * nextReach;
+            const nix = next.px - next.nx * nextReach;
+            const niy = next.py - next.ny * nextReach;
+
+            ctx.moveTo(ox, oy);
+            ctx.lineTo(ix, iy);
+            ctx.lineTo(nox, noy);
+            ctx.lineTo(ox, oy);
+            ctx.moveTo(ix, iy);
+            ctx.lineTo(nix, niy);
+            ctx.lineTo(nox, noy);
+          }
+          ctx.stroke();
+        }
+
+        // --- STEP 1: 3D Oval & Tight Clipped WebGL Canvas Bounding Box ---
+        {
+          const ctx = canvases[0].ctx;
+          ctx.fillStyle = 'rgba(255, 237, 75, 0.04)';
+          ctx.strokeStyle = 'rgba(255, 237, 75, 0.35)';
+          ctx.setLineDash([3, 3]);
+          ctx.lineWidth = 1;
+          ctx.fillRect(18, boundTopY, 234, boundBotY - boundTopY);
+          ctx.strokeRect(18, boundTopY, 234, boundBotY - boundTopY);
+          ctx.setLineDash([]);
+
+          for (let k = 0; k < basePts.length; k += 3) {
+            const p = basePts[k];
+            const inBox = (cy + p.y) >= boundTopY;
+            ctx.strokeStyle = inBox ? 'rgba(255,237,75,0.4)' : 'rgba(255,255,255,0.12)';
+            ctx.beginPath();
+            ctx.moveTo(cx + p.x, cy + p.y);
+            ctx.lineTo(cx + p.x + p.nx * 7, cy + p.y + p.ny * 7);
+            ctx.stroke();
+
+            ctx.fillStyle = inBox ? '#FFED4B' : '#52525B';
+            ctx.beginPath();
+            ctx.arc(cx + p.x, cy + p.y, inBox ? 1.8 : 1.2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        // --- STEP 2: Packed Vertex Buffer (side = +1, -1 pairs with wave surge) ---
+        {
+          const ctx = canvases[1].ctx;
+          ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          framePts.forEach((p, idx) => {
+            if (idx === 0) ctx.moveTo(p.px, p.py);
+            else ctx.lineTo(p.px, p.py);
+          });
+          ctx.closePath();
+          ctx.stroke();
+
+          for (let k = 0; k < framePts.length; k += 2) {
+            const p = framePts[k];
+            const spread = p.halfPlasma * 2.8;
+            const ox = p.px + p.nx * spread;
+            const oy = p.py + p.ny * spread;
+            const ix = p.px - p.nx * spread;
+            const iy = p.py - p.ny * spread;
+
+            ctx.strokeStyle = 'rgba(255, 237, 75, 0.35)';
+            ctx.beginPath();
+            ctx.moveTo(ix, iy);
+            ctx.lineTo(ox, oy);
+            ctx.stroke();
+
+            ctx.fillStyle = '#FFED4B';
+            ctx.beginPath();
+            ctx.arc(ox, oy, 1.7, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#FF8A00';
+            ctx.beginPath();
+            ctx.arc(ix, iy, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        // --- STEP 3: stripVertexShader Triangle Strip Extrusion ---
+        {
+          const ctx = canvases[2].ctx;
+          ctx.fillStyle = 'rgba(255, 184, 0, 0.10)';
+          traceLayerRibbon(ctx, HERO_GLOW_WIDTH, 7.5, false);
+          ctx.fill('evenodd');
+
+          drawTriangleStripMesh(ctx, HERO_GLOW_WIDTH, 7.5, 'rgba(255, 237, 75, 0.55)');
+        }
+
+        // --- STEP 4: Unblurred Corona Pass (coverage * depthGradient) ---
+        {
+          const ctx = canvases[3].ctx;
+          ctx.fillStyle = createDepthGrad(ctx, '#FFB800', '#FF8A00');
+          traceLayerRibbon(ctx, HERO_GLOW_WIDTH, 0, false);
+          ctx.fill('evenodd');
+          if (showWireframe) {
+            drawTriangleStripMesh(ctx, HERO_GLOW_WIDTH, 2, 'rgba(255,255,255,0.28)');
+          }
+        }
+
+        // --- STEP 5: Dual Separable FBO Gaussian Blur (Tight σ=2.2 + Wide σ=6.5) ---
+        {
+          const ctx = canvases[4].ctx;
+          ctx.save();
+          ctx.filter = 'blur(6.5px)';
+          ctx.fillStyle = createDepthGrad(ctx, '#FFB800', '#FF8A00');
+          traceLayerRibbon(ctx, HERO_GLOW_WIDTH, 0, false);
+          ctx.fill('evenodd');
+          ctx.restore();
+
+          ctx.save();
+          ctx.filter = 'blur(2.2px)';
+          ctx.fillStyle = createDepthGrad(ctx, '#FFB800', '#FF8A00');
+          traceLayerRibbon(ctx, HERO_GLOW_WIDTH, 0, false);
+          ctx.fill('evenodd');
+          ctx.restore();
+
+          if (showWireframe) {
+            drawTriangleStripMesh(ctx, HERO_GLOW_WIDTH, 9, 'rgba(255, 138, 0, 0.35)');
+          }
+        }
+
+        // --- STEP 6: 256x256 Lattice Fractal Noise + Ragged Displaced Plasma ---
+        {
+          const ctx = canvases[5].ctx;
+          ctx.save();
+          ctx.filter = 'blur(0.8px)';
+          ctx.fillStyle = createDepthGrad(ctx, 'rgba(255, 237, 75, 0.85)', 'rgba(255, 208, 0, 0.85)');
+          traceLayerRibbon(ctx, 1.15, 0, true);
+          ctx.fill('evenodd');
+          ctx.restore();
+
+          for (let k = 0; k < framePts.length; k++) {
+            const p = framePts[k];
+            const next = framePts[(k + 1) % framePts.length];
+            const t = (frontY - p.py) / (frontY - backY);
+            if (t > 0.72) continue;
+            const depthAlpha = t < 0.45 ? 1 - 0.05 * (t / 0.45) : 0.95 * (1 - (t - 0.45) / 0.27);
+            const alpha = Math.max(0, depthAlpha * p.grain);
+
+            ctx.strokeStyle = `rgba(255, 230, 55, ${alpha.toFixed(3)})`;
+            ctx.lineWidth = p.halfPlasma * 2.0;
+            ctx.beginPath();
+            ctx.moveTo(p.px + p.nx * p.normalDisp, p.py + p.ny * p.normalDisp);
+            ctx.lineTo(next.px + next.nx * next.normalDisp, next.py + next.ny * next.normalDisp);
+            ctx.stroke();
+          }
+
+          if (showWireframe) {
+            drawTriangleStripMesh(ctx, 1.0, 3.5, 'rgba(255, 237, 75, 0.35)');
+          }
+        }
+
+        // --- STEP 7: Single-Pass Filament (Core + Plasma) ---
+        {
+          const ctx = canvases[6].ctx;
+          ctx.save();
+          ctx.filter = 'blur(0.75px)';
+          ctx.fillStyle = createDepthGrad(ctx, '#FFED4B', '#FFD000');
+          traceLayerRibbon(ctx, 1.1, 0, true);
+          ctx.fill('evenodd');
+          ctx.restore();
+
+          ctx.fillStyle = createDepthGrad(ctx, '#FFED4B', '#FFD000');
+          traceLayerRibbon(ctx, 1.0, 0, true);
+          ctx.fill('evenodd');
+
+          ctx.fillStyle = createDepthGrad(ctx, '#FFFDF2', '#FFF3A1');
+          traceLayerRibbon(ctx, HERO_CORE_WIDTH, 0, false);
+          ctx.fill('evenodd');
+        }
+
+        // --- STEP 8: Final Composite with Neon Flicker & Orbiting Icons ---
+        {
+          const ctx = canvases[7].ctx;
+          ctx.save();
+          ctx.globalAlpha = glowOpacity;
+          ctx.filter = 'blur(6.5px)';
+          ctx.fillStyle = createDepthGrad(ctx, '#FFB800', '#FF8A00');
+          traceLayerRibbon(ctx, HERO_GLOW_WIDTH, 0, false);
+          ctx.fill('evenodd');
+          ctx.filter = 'blur(2.2px)';
+          traceLayerRibbon(ctx, HERO_GLOW_WIDTH, 0, false);
+          ctx.fill('evenodd');
+          ctx.restore();
+
+          ctx.save();
+          ctx.globalAlpha = plasmaOpacity;
+          ctx.filter = 'blur(0.65px)';
+          ctx.fillStyle = createDepthGrad(ctx, '#FFED4B', '#FFD000');
+          traceLayerRibbon(ctx, 1.08, 0, true);
+          ctx.fill('evenodd');
+          ctx.filter = 'none';
+          traceLayerRibbon(ctx, 1.0, 0, true);
+          ctx.fill('evenodd');
+          ctx.restore();
+
+          ctx.save();
+          ctx.globalAlpha = coreOpacity;
+          ctx.fillStyle = createDepthGrad(ctx, '#FFFDF2', '#FFF3A1');
+          traceLayerRibbon(ctx, HERO_CORE_WIDTH, 0, false);
+          ctx.fill('evenodd');
+          ctx.restore();
+
+          const iconCount = 5;
+          for (let i = 0; i < iconCount; i++) {
+            const theta = simTime * 0.55 + (i * 2 * Math.PI) / iconCount;
+            const cosT = Math.cos(theta);
+            const sinT = Math.sin(theta);
+            const farness = (1 - sinT) / 2;
+            if (farness >= 0.70) continue;
+
+            const persp = 1 / (1 - perspectiveStrength * sinT);
+            const ix = cx + rx * cosT * persp * (1 - perspectiveStrength * perspectiveStrength);
+            const iy = cy + ry * sinT * persp;
+            const rIcon = 7.5 * persp;
+
+            let alpha = 1;
+            if (farness > 0.52) {
+              const t = (farness - 0.52) / 0.18;
+              alpha = Math.max(0, 1 - t * t * (3 - 2 * t));
+            }
+            const fog = Math.pow(Math.min(1, farness / 0.70), 1.35) * 0.88;
+
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            const goldLum = Math.round((1 - fog) * 235 * flicker);
+            ctx.fillStyle = `rgb(${goldLum}, ${Math.round(goldLum * 0.88)}, ${Math.round(goldLum * 0.28)})`;
+            ctx.strokeStyle = `rgba(255, 237, 75, ${(1 - fog) * 0.75})`;
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.roundRect(ix - rIcon, iy - rIcon, rIcon * 2, rIcon * 2, 4 * persp);
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+          }
+        }
+
+        // --- CROSS-SECTIONAL PROFILE CANVAS ---
+        {
+          const w = profileCanvas.width;
+          const h = profileCanvas.height;
+          profileCtx.clearRect(0, 0, w, h);
+
+          const midX = w / 2;
+          const baseY = h - 14;
+
+          profileCtx.strokeStyle = 'rgba(255,255,255,0.08)';
+          profileCtx.beginPath();
+          profileCtx.moveTo(16, baseY);
+          profileCtx.lineTo(w - 16, baseY);
+          profileCtx.moveTo(midX, 8);
+          profileCtx.lineTo(midX, baseY);
+          profileCtx.stroke();
+
+          const liveDisp = Math.sin(simTime * 7.5) * dispScale * 6;
+
+          profileCtx.fillStyle = 'rgba(255, 138, 0, 0.22)';
+          profileCtx.strokeStyle = '#FF8A00';
+          profileCtx.lineWidth = 1.5;
+          profileCtx.beginPath();
+          for (let px = 20; px <= w - 20; px += 2) {
+            const d = (px - midX) / 7.5;
+            const tight = Math.exp((-d * d) / (2 * 2.8 * 2.8)) * 0.7;
+            const wide = Math.exp((-d * d) / (2 * 7.5 * 7.5)) * 0.45;
+            const val = Math.min(1, tight + wide * (1 - tight)) * glowOpacity;
+            const py = baseY - val * (h - 24);
+            if (px === 20) profileCtx.moveTo(px, baseY);
+            profileCtx.lineTo(px, py);
+          }
+          profileCtx.lineTo(w - 20, baseY);
+          profileCtx.closePath();
+          profileCtx.fill();
+          profileCtx.stroke();
+
+          profileCtx.fillStyle = 'rgba(255, 237, 75, 0.28)';
+          profileCtx.strokeStyle = '#FFED4B';
+          profileCtx.beginPath();
+          for (let px = 20; px <= w - 20; px += 2) {
+            const d = (px - midX - liveDisp) / 7.5;
+            const val = (1 / (1 + Math.exp((Math.abs(d) - 2.2) * 3.2))) * plasmaOpacity;
+            const py = baseY - val * (h - 22);
+            if (px === 20) profileCtx.moveTo(px, baseY);
+            profileCtx.lineTo(px, py);
+          }
+          profileCtx.lineTo(w - 20, baseY);
+          profileCtx.closePath();
+          profileCtx.fill();
+          profileCtx.stroke();
+
+          profileCtx.fillStyle = 'rgba(255, 253, 242, 0.45)';
+          profileCtx.strokeStyle = '#FFFDF2';
+          profileCtx.beginPath();
+          for (let px = 20; px <= w - 20; px += 2) {
+            const d = (px - midX) / 7.5;
+            const val = (1 / (1 + Math.exp((Math.abs(d) - 0.8) * 6.0))) * coreOpacity;
+            const py = baseY - val * (h - 20);
+            if (px === 20) profileCtx.moveTo(px, baseY);
+            profileCtx.lineTo(px, py);
+          }
+          profileCtx.lineTo(w - 20, baseY);
+          profileCtx.closePath();
+          profileCtx.fill();
+          profileCtx.stroke();
+        }
+
+        // --- OSCILLOSCOPE: Live 3-Layer Opacity Response ---
+        {
+          const w = scopeCanvas.width;
+          const h = scopeCanvas.height;
+          scopeCtx.clearRect(0, 0, w, h);
+
+          scopeCtx.strokeStyle = 'rgba(255,255,255,0.06)';
+          scopeCtx.lineWidth = 1;
+          scopeCtx.beginPath();
+          scopeCtx.moveTo(0, h * 0.25);
+          scopeCtx.lineTo(w, h * 0.25);
+          scopeCtx.moveTo(0, h * 0.75);
+          scopeCtx.lineTo(w, h * 0.75);
+          scopeCtx.stroke();
+
+          function drawTrace(arr, color, lineWidth) {
+            scopeCtx.strokeStyle = color;
+            scopeCtx.lineWidth = lineWidth;
+            scopeCtx.beginPath();
+            for (let i = 0; i < arr.length; i++) {
+              const vx = (i / (arr.length - 1)) * w;
+              const norm = (arr[i] - 0.25) / 0.80;
+              const vy = h - Math.max(0.08, Math.min(0.92, norm)) * h;
+              if (i === 0) scopeCtx.moveTo(vx, vy);
+              else scopeCtx.lineTo(vx, vy);
+            }
+            scopeCtx.stroke();
+          }
+
+          drawTrace(historyGlow, '#FF8A00', 1.5);
+          drawTrace(historyPlasma, '#FFED4B', 1.8);
+          drawTrace(historyCore, '#FFFDF2', 2.0);
+        }
+
+        requestAnimationFrame(frame);
+      }
+
+      requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>

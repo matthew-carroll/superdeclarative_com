@@ -19,26 +19,22 @@ jobs:
 
       # Download all the packages that the app uses
       - run: dart pub get
-        working-directory: marketing
 
       - name: Make tailwind executable
         run: chmod +x tailwindcss
-        working-directory: marketing
 
       # Build the static site
       - run: ./tool/build.sh
-        working-directory: marketing
 
       # Don't deploy an unstyled site.
       - name: Check that the stylesheet was built
         run: test -s build/jaspr/styles/tailwind.css
-        working-directory: marketing
 
       # Zip and upload the static site.
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:
-          path: ./marketing/build/jaspr
+          path: ./build/jaspr
 
   deploy:
     name: Deploy

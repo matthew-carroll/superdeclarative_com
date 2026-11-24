@@ -9,3 +9,6 @@ build/
 .idea
 
 .DS_Store
+
+# Compiled from styles/tailwind.css
+/web/styles/

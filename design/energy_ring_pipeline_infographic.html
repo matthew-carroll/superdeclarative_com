@@ -418,7 +418,6 @@
         // --- STEP 2: 3D Tilt & Perspective Foreshortening ---
         {
           const ctx = canvases[1].ctx;
-          // Draw un-foreshortened ellipse in dashed gray
           ctx.strokeStyle = 'rgba(255,255,255,0.18)';
           ctx.setLineDash([3, 3]);
           ctx.beginPath();
@@ -426,7 +425,6 @@
           ctx.stroke();
           ctx.setLineDash([]);
 
-          // Draw perspective-foreshortened points
           for (let k = 0; k < pts.length; k += 2) {
             const p = pts[k];
             ctx.fillStyle = p.sinT > 0 ? '#FFED4B' : '#71717A';
@@ -449,7 +447,6 @@
           ctx.closePath();
           ctx.stroke();
 
-          // Draw normal vectors at intervals
           for (let k = 0; k < pts.length; k += 4) {
             const p = pts[k];
             const frontWeight = (p.sinT + 1) / 2;
@@ -495,7 +492,6 @@
           }
         }
 
-        // Helper to draw a ribbon polygon from modulatedPts
         function traceRibbon(ctx, scale) {
           ctx.beginPath();
           for (let k = 0; k < modulatedPts.length; k++) {
@@ -519,17 +515,14 @@
         // --- STEP 5: 3 Concentric Ribbon Layers (Unfiltered) ---
         {
           const ctx = canvases[4].ctx;
-          // Layer 1: Corona
           ctx.fillStyle = 'rgba(255, 168, 0, 0.42)';
           traceRibbon(ctx, 2.55);
           ctx.fill('evenodd');
 
-          // Layer 2: Plasma
           ctx.fillStyle = '#FFED4B';
           traceRibbon(ctx, 1.0);
           ctx.fill('evenodd');
 
-          // Layer 3: Core
           ctx.fillStyle = '#FFFDF2';
           traceRibbon(ctx, 0.38);
           ctx.fill('evenodd');
@@ -549,7 +542,6 @@
 
         {
           const ctx = canvases[5].ctx;
-          // 72% cutoff horizon indicator line
           const cutoffY = cy + ry * 1.35 - 0.72 * (ry * 2.5);
           ctx.strokeStyle = 'rgba(255,255,255,0.14)';
           ctx.setLineDash([2, 4]);
@@ -620,7 +612,6 @@
           ctx.fill('evenodd');
           ctx.restore();
 
-          // Draw 4 orbiting icon badges reflecting the neon flicker and fog fade
           const iconCount = 5;
           for (let i = 0; i < iconCount; i++) {
             const theta = simTime * 0.55 + (i * 2 * Math.PI) / iconCount;
@@ -661,7 +652,6 @@
           const h = scopeCanvas.height;
           scopeCtx.clearRect(0, 0, w, h);
 
-          // Reference grid lines
           scopeCtx.strokeStyle = 'rgba(255,255,255,0.06)';
           scopeCtx.lineWidth = 1;
           scopeCtx.beginPath();
@@ -671,13 +661,12 @@
           scopeCtx.lineTo(w, h * 0.75);
           scopeCtx.stroke();
 
-          // Voltage waveform
           scopeCtx.strokeStyle = '#FFED4B';
           scopeCtx.lineWidth = 2;
           scopeCtx.beginPath();
           for (let i = 0; i < voltageHistory.length; i++) {
             const vx = (i / (voltageHistory.length - 1)) * w;
-            const norm = (voltageHistory[i] - 0.65) / 0.40; // 0.65..1.05
+            const norm = (voltageHistory[i] - 0.65) / 0.40;
             const vy = h - Math.max(0.08, Math.min(0.92, norm)) * h;
             if (i === 0) scopeCtx.moveTo(vx, vy);
             else scopeCtx.lineTo(vx, vy);
