@@ -3,6 +3,8 @@
   const ringElements = Array.from(document.querySelectorAll(".hero-orbit-ring"));
   if (ringElements.length === 0) return;
 
+  const BEAM_STEPS = 128;
+
   const rings = ringElements.map((ringEl, ringIndex) => {
     const icons = Array.from(ringEl.querySelectorAll(".hero-ring-icon"));
     const tilt = parseFloat(ringEl.dataset.ringTilt || "0.22");
@@ -10,115 +12,7 @@
     const phaseOffset = parseFloat(ringEl.dataset.ringPhase || "0");
     const useFog = ringEl.dataset.ringFog !== "false";
 
-    // Create an SVG element behind the ring's icons for the multi-layered flickering energy beam
-    const trackSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    trackSvg.setAttribute("class", "pointer-events-none absolute top-0 left-1/2 overflow-visible");
-    trackSvg.style.width = "1px";
-    trackSvg.style.height = "1px";
-    trackSvg.style.zIndex = "10";
-
-    const uid = `${ringEl.id || ringIndex}-${Math.random().toString(36).slice(2, 7)}`;
-    const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-
-    // Helper to create vertical front-to-back fade gradient (fades out just past halfway toward the back)
-    function createDepthGradient(id, frontColor, midColor) {
-      const grad = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
-      grad.setAttribute("id", id);
-      grad.setAttribute("x1", "0");
-      grad.setAttribute("y1", "1"); // front (bottom of oval)
-      grad.setAttribute("x2", "0");
-      grad.setAttribute("y2", "0"); // back (top of oval)
-      const stops = [
-        { offset: "0%", color: frontColor, opacity: "1" },
-        { offset: "45%", color: midColor, opacity: "0.95" },
-        { offset: "72%", color: midColor, opacity: "0" },
-        { offset: "100%", color: midColor, opacity: "0" },
-      ];
-      for (const s of stops) {
-        const stop = document.createElementNS("http://www.w3.org/2000/svg", "stop");
-        stop.setAttribute("offset", s.offset);
-        stop.setAttribute("stop-color", s.color);
-        stop.setAttribute("stop-opacity", s.opacity);
-        grad.appendChild(stop);
-      }
-      return grad;
-    }
-
-    const glowGradId = `beamGlowGrad-${uid}`;
-    const plasmaGradId = `beamPlasmaGrad-${uid}`;
-    const coreGradId = `beamCoreGrad-${uid}`;
-    defs.appendChild(createDepthGradient(glowGradId, "#FFB800", "#FF8A00"));
-    defs.appendChild(createDepthGradient(plasmaGradId, "#FFED4B", "#FFD000"));
-    defs.appendChild(createDepthGradient(coreGradId, "#FFFDF2", "#FFF3A1"));
-
-    // Dual-stage bloom filter for the outer energy corona
-    const glowFilterId = `beamGlowFilter-${uid}`;
-    const glowFilter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
-    glowFilter.setAttribute("id", glowFilterId);
-    glowFilter.setAttribute("x", "-50%");
-    glowFilter.setAttribute("y", "-50%");
-    glowFilter.setAttribute("width", "200%");
-    glowFilter.setAttribute("height", "200%");
-    glowFilter.innerHTML = `
-      <feGaussianBlur in="SourceGraphic" stdDeviation="2.2" result="tightBloom" />
-      <feGaussianBlur in="SourceGraphic" stdDeviation="6.5" result="wideBloom" />
-      <feMerge>
-        <feMergeNode in="wideBloom" />
-        <feMergeNode in="tightBloom" />
-      </feMerge>
-    `;
-    defs.appendChild(glowFilter);
-
-    // Procedural fractal plasma texture & micro-displacement filter for the main filament
-    const plasmaFilterId = `beamPlasmaFilter-${uid}`;
-    const plasmaFilter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
-    plasmaFilter.setAttribute("id", plasmaFilterId);
-    plasmaFilter.setAttribute("x", "-30%");
-    plasmaFilter.setAttribute("y", "-30%");
-    plasmaFilter.setAttribute("width", "160%");
-    plasmaFilter.setAttribute("height", "160%");
-    plasmaFilter.innerHTML = `
-      <feTurbulence type="fractalNoise" baseFrequency="0.045 0.09" numOctaves="3" seed="${17 + ringIndex * 31}" result="noise" />
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.2" xChannelSelector="R" yChannelSelector="G" result="displaced" />
-      <feComponentTransfer in="noise" result="grainAlpha">
-        <feFuncA type="linear" slope="0.65" intercept="0.55" />
-      </feComponentTransfer>
-      <feComposite in="displaced" in2="grainAlpha" operator="in" result="texturedPlasma" />
-      <feGaussianBlur in="texturedPlasma" stdDeviation="0.55" result="softPlasma" />
-      <feMerge>
-        <feMergeNode in="softPlasma" />
-        <feMergeNode in="texturedPlasma" />
-      </feMerge>
-    `;
-    defs.appendChild(plasmaFilter);
-    const turbulenceEl = plasmaFilter.querySelector("feTurbulence");
-
-    trackSvg.appendChild(defs);
-
-    // Layer 1: Outer Amber/Gold Corona Bloom
-    const glowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    glowPath.setAttribute("fill", `url(#${glowGradId})`);
-    glowPath.setAttribute("fill-rule", "evenodd");
-    glowPath.setAttribute("filter", `url(#${glowFilterId})`);
-    glowPath.style.mixBlendMode = "screen";
-    trackSvg.appendChild(glowPath);
-
-    // Layer 2: Textured Golden-Yellow Plasma Filament
-    const trackPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    trackPath.setAttribute("fill", `url(#${plasmaGradId})`);
-    trackPath.setAttribute("fill-rule", "evenodd");
-    trackPath.setAttribute("filter", `url(#${plasmaFilterId})`);
-    trackSvg.appendChild(trackPath);
-
-    // Layer 3: Incandescent Hot White-Gold Inner Core
-    const corePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    corePath.setAttribute("fill", `url(#${coreGradId})`);
-    corePath.setAttribute("fill-rule", "evenodd");
-    trackSvg.appendChild(corePath);
-
-    ringEl.insertBefore(trackSvg, ringEl.firstChild);
-
-    const centerPhone = ringEl.querySelector("#heroCenterPhoneLit") || ringEl.querySelector("#heroCenterPhone");
+    const centerPhone = ringEl.querySelector("#heroCenterPhoneSlide"); // Safari ignores filters inside an SVG
 
     return {
       ringEl,
@@ -129,11 +23,9 @@
       phaseOffset,
       useFog,
       ringIndex,
-      glowPath,
-      trackPath,
-      corePath,
-      turbulenceEl,
+      beam: createHeroBeam(ringEl, 17 + ringIndex * 31),
       basePts: [],
+      beamVertices: new Float32Array((BEAM_STEPS + 1) * 2 * 6),
       width: ringEl.clientWidth,
       lastRx: 0,
       lastMaxRx: 0,
@@ -224,7 +116,17 @@
     const ring3ToRing2 = Math.max(82, 110 + delta * 0.14);
     const ring2ToRing1 = Math.max(112, 150 + delta * 0.18);
 
-    const ring3Top = topPad + headingH + headingToRing3;
+    // On phones, the heading sits below the logo instead of beside it. Where the top padding is compressed,
+    // push everything but the character down to make room for the logo, by up to 50px. Very short screens
+    // only push down until ring 1's front icons (120px below its center) reach the bottom of the hero, but
+    // always enough to clear the logo.
+    let pushDown = 0;
+    if (window.innerWidth < 640) {
+      const ring1Bottom = topPad + headingH + headingToRing3 + ring3ToRing2 + ring2ToRing1 + 120;
+      pushDown = Math.max(0, Math.min(50, 102 - topPad, Math.max(16, H - ring1Bottom)));
+    }
+
+    const ring3Top = topPad + pushDown + headingH + headingToRing3;
     const ring2Top = ring3Top + ring3ToRing2;
     const ring1Top = ring2Top + ring2ToRing1;
     const phoneOffset = -50 * (headingToRing3 / 245);
@@ -237,7 +139,12 @@
   }
 
   updateProportionalColumnLayout();
-  window.addEventListener("resize", updateProportionalColumnLayout);
+  window.addEventListener("resize", () => {
+    updateProportionalColumnLayout();
+    for (const ring of rings) {
+      ring.lastRx = 0; // recompute the ring in the next frame
+    }
+  });
 
   // Reading a ring's width in every frame would force a layout in every frame.
   const ringSizes = new ResizeObserver(() => {
@@ -251,7 +158,7 @@
 
   // Precompute base perspective oval geometry & unit normals whenever dimensions change
   function computeRingBaseGeometry(ring, rx, ry, radiusRatio) {
-    const steps = 128;
+    const steps = BEAM_STEPS;
     const raw = [];
     for (let k = 0; k < steps; k++) {
       const theta = (k * 2 * Math.PI) / steps;
@@ -282,6 +189,23 @@
       });
     }
     ring.basePts = basePts;
+  }
+
+  // Gives a ring's beam the area that the beam can reach, including its glow, during and after its entrance
+  function layOutBeam(ring) {
+    const glowReach = 28;
+    const xs = ring.basePts.map((p) => p.x);
+    const ys = ring.basePts.map((p) => p.y);
+    const front = Math.max(...ys);
+    const back = Math.min(...ys);
+    const visibleX = Math.min(Math.max(...xs), heroEl.clientWidth / 2); // the hero clips its rings
+
+    ring.beam.layOut(
+      -visibleX - glowReach,
+      front - (front - back) * 0.73 - glowReach, // the beam fades out toward the back of the ring
+      visibleX + glowReach,
+      Math.max(front, front * 0.5 + 72) + glowReach, // the beam enters from below, at half of its size
+    );
   }
 
   // Deterministic pseudo-noise helper for realistic unstable neon voltage dips/sputters
@@ -321,22 +245,13 @@
     ring.currentFlicker = flicker;
     ring.currentFlowPhase = flowPhase;
 
-    if (introOpacity <= 0.001) {
-      ring.glowPath.style.opacity = "0";
-      ring.trackPath.style.opacity = "0";
-      ring.corePath.style.opacity = "0";
-      return;
-    }
-
-    const glowOuter = [];
-    const glowInner = [];
-    const plasmaOuter = [];
-    const plasmaInner = [];
-    const coreOuter = [];
-    const coreInner = [];
+    const { beam, beamVertices } = ring;
+    beam.setVisible(introOpacity > 0.001);
+    if (introOpacity <= 0.001) return;
 
     const minThickness = 1.1; // back of the ring (sinT = -1)
     const maxThickness = 3.8; // front of the ring (sinT = +1)
+    let v = 0;
 
     for (let k = 0; k < steps; k++) {
       const p = pts[k];
@@ -355,42 +270,28 @@
       const cy = p.y * radiusScale + p.ny * jitter + slideYOffset;
 
       const halfPlasma = (baseW * packetSurge) / 2;
-      const halfGlow = halfPlasma * 2.35;
-      const halfCore = halfPlasma * 0.36;
-
-      glowOuter.push(`${(cx + p.nx * halfGlow).toFixed(2)},${(cy + p.ny * halfGlow).toFixed(2)}`);
-      glowInner.push(`${(cx - p.nx * halfGlow).toFixed(2)},${(cy - p.ny * halfGlow).toFixed(2)}`);
-
-      plasmaOuter.push(`${(cx + p.nx * halfPlasma).toFixed(2)},${(cy + p.ny * halfPlasma).toFixed(2)}`);
-      plasmaInner.push(`${(cx - p.nx * halfPlasma).toFixed(2)},${(cy - p.ny * halfPlasma).toFixed(2)}`);
-
-      coreOuter.push(`${(cx + p.nx * halfCore).toFixed(2)},${(cy + p.ny * halfCore).toFixed(2)}`);
-      coreInner.push(`${(cx - p.nx * halfCore).toFixed(2)},${(cy - p.ny * halfCore).toFixed(2)}`);
+      for (const side of [1, -1]) {
+        beamVertices[v++] = cx;
+        beamVertices[v++] = cy;
+        beamVertices[v++] = p.nx;
+        beamVertices[v++] = p.ny;
+        beamVertices[v++] = halfPlasma;
+        beamVertices[v++] = side;
+      }
     }
+    beamVertices.copyWithin(v, 0, 12); // close the loop
 
-    ring.glowPath.setAttribute(
-      "d",
-      `M ${glowOuter[0]} L ${glowOuter.slice(1).join(" L ")} Z M ${glowInner[0]} L ${glowInner.slice(1).join(" L ")} Z`
-    );
-    ring.trackPath.setAttribute(
-      "d",
-      `M ${plasmaOuter[0]} L ${plasmaOuter.slice(1).join(" L ")} Z M ${plasmaInner[0]} L ${plasmaInner.slice(1).join(" L ")} Z`
-    );
-    ring.corePath.setAttribute(
-      "d",
-      `M ${coreOuter[0]} L ${coreOuter.slice(1).join(" L ")} Z M ${coreInner[0]} L ${coreInner.slice(1).join(" L ")} Z`
-    );
-
-    ring.glowPath.style.opacity = (Math.min(1, flicker * 0.72) * introOpacity).toFixed(3);
-    ring.trackPath.style.opacity = (Math.min(1, flicker * 0.96) * introOpacity).toFixed(3);
-    ring.corePath.style.opacity = (Math.min(1, (0.65 + (flicker - 0.85) * 2.2)) * introOpacity).toFixed(3);
-
-    // Subtly shift fractal noise frequency for living internal plasma texture
-    if (ring.turbulenceEl) {
-      const fx = (0.042 + 0.006 * Math.sin(timeSec * 3.1 + seedOffset)).toFixed(4);
-      const fy = (0.088 + 0.012 * Math.cos(timeSec * 4.7 + seedOffset)).toFixed(4);
-      ring.turbulenceEl.setAttribute("baseFrequency", `${fx} ${fy}`);
-    }
+    beam.draw({
+      vertices: beamVertices,
+      glowOpacity: Math.min(1, flicker * 0.72) * introOpacity,
+      plasmaOpacity: Math.min(1, flicker * 0.96) * introOpacity,
+      coreOpacity: Math.min(1, 0.65 + (flicker - 0.85) * 2.2) * introOpacity,
+      // Subtly shift fractal noise frequency for living internal plasma texture
+      noiseFrequency: [
+        0.042 + 0.006 * Math.sin(timeSec * 3.1 + seedOffset),
+        0.088 + 0.012 * Math.cos(timeSec * 4.7 + seedOffset),
+      ],
+    });
   }
 
   let frameRequest = null;
@@ -507,6 +408,7 @@
         computeRingBaseGeometry(ring, rx, ry, radiusRatio);
         ring.lastRx = rx;
         ring.lastMaxRx = maxRx;
+        layOutBeam(ring);
       }
 
       // Steps 2, 3, 4: Ring entrance (starts at half diameter, slides up into place, icons scale up & ring/icons fade in)

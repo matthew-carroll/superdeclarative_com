@@ -46,7 +46,7 @@
   </clipPath>
 </defs>
 
-<g id="heroCenterPhoneLit">
+<g>
   <!-- Side hardware buttons -->
   <rect x="1.5" y="82" width="3" height="22" rx="1.5" fill="#484852" />
   <rect x="1.5" y="118" width="3" height="34" rx="1.5" fill="#484852" />

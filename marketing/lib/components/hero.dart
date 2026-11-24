@@ -169,10 +169,11 @@ class _Heading extends StatelessComponent {
           attributes: {'style': 'opacity: 0;'},
           [.text('AI Infused')],
         ),
+        // Narrow phones shrink the title to keep it on one line. It's just under 8.05em wide.
         h1(
           id: 'heroMainTitle',
           classes:
-              'text-white font-bold text-[45px] min-[1200px]:text-6xl tracking-tight leading-tight will-change-transform',
+              'text-white font-bold text-[length:min(45px,calc((100vw-48px)/8.05))] min-[1200px]:text-6xl tracking-tight leading-tight will-change-transform',
           attributes: {'style': 'opacity: 0;'},
           [.text('App Development')],
         ),

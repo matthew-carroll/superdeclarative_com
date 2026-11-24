@@ -34,6 +34,7 @@ class HomePage extends StatelessComponent {
       script(src: 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js', defer: true),
       InlineScript('emailjs'),
       InlineScript('contact'),
+      InlineScript('hero_beam'),
       InlineScript('hero_rings'),
     ]);
   }
