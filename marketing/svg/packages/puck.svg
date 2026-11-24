@@ -1,0 +1,14 @@
+<svg viewBox="0 0 490 280" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <clipPath id="pkgPuckScreen"><rect x="135" y="32" width="220" height="300" rx="24" /></clipPath>
+  <rect x="135" y="32" width="220" height="300" rx="24" fill="#1F1F25" />
+  <g fill="#2C2C33"><rect x="157" y="62" width="76" height="12" rx="6" /><rect x="157" y="92" width="112" height="8" rx="4" /><rect x="157" y="112" width="88" height="8" rx="4" /><rect x="157" y="132" width="104" height="8" rx="4" /><rect x="157" y="170" width="112" height="8" rx="4" /><rect x="157" y="190" width="76" height="8" rx="4" /><rect x="157" y="210" width="100" height="8" rx="4" /><rect x="157" y="248" width="112" height="8" rx="4" /></g>
+  <g clip-path="url(#pkgPuckScreen)">
+    <path class="pkg-in" style="--d:12" d="M305.3 71.1A84 84 0 0 0 305.3 228.9" fill="none" stroke="#46464F" stroke-width="1.5" />
+    <g transform="translate(305.3 71.1)"><g class="pkg-fan" style="--d:0;--x:28.7px;--y:78.9px"><circle r="18" fill="#3A3A42" /><g fill="none" stroke="#D4D4D8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="-1.5" cy="-1.5" r="4.5" /><path d="m2 2 4 4" /></g></g></g>
+    <g transform="translate(265.2 101.8)"><g class="pkg-fan" style="--d:1;--x:68.8px;--y:48.2px"><circle r="18" fill="#3A3A42" /><g fill="none" stroke="#D4D4D8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M0 6-5.5.5a3.3 3.3 0 0 1 5.5-3.8A3.3 3.3 0 0 1 5.5.5Z" /></g></g></g>
+    <g transform="translate(250.0 150.0)"><g class="pkg-fan" style="--d:2;--x:84.0px;--y:0.0px"><circle r="18" fill="#3A3A42" /><g fill="none" stroke="#D4D4D8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M0 3v-9m-3.5 3L0-6l3.5 3M-5.5 2v4h11V2" /></g></g></g>
+    <g transform="translate(265.2 198.2)"><g class="pkg-fan" style="--d:3;--x:68.8px;--y:-48.2px"><circle r="18" fill="#3A3A42" /><g fill="none" stroke="#D4D4D8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle r="3" /><path d="M0-7v1.5M0 5.5V7M-7 0h1.5M5.5 0H7M-5-5l1 1M4 4l1 1M-5 5l1-1M4-4l1-1" /></g></g></g>
+    <g transform="translate(305.3 228.9)"><g class="pkg-fan" style="--d:4;--x:28.7px;--y:-78.9px"><circle r="18" fill="#3A3A42" /><g fill="none" stroke="#D4D4D8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M-5-5h4v4h-4zM1-5h4v4H1zM-5 1h4v4h-4zM1 1h4v4H1z" /></g></g></g>
+    <g class="pkg-dock"><circle cx="334" cy="150" r="26" fill="#FFED4B" /><circle cx="334" cy="150" r="19" fill="none" stroke="#141417" stroke-opacity=".22" stroke-width="2" /></g>
+  </g>
+</svg>

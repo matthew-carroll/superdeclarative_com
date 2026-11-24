@@ -1,0 +1,22 @@
+<svg viewBox="0 0 660 280" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <rect x="122" y="36" width="416" height="300" rx="10" fill="#1F1F25" />
+  <text x="154" y="90" font-size="24" font-weight="700" letter-spacing="-.4" fill="#F7F8FC">Release notes</text>
+  <rect class="pkg-select" x="310" y="152" width="90" height="26" rx="3" fill="#FFED4B" fill-opacity=".24" />
+  <text x="154" y="170" font-size="16" fill="#A1A1AA" textLength="152" lengthAdjust="spacingAndGlyphs">Select any words and</text>
+  <text x="314" y="170" font-size="16" font-weight="700" fill="#F7F8FC" textLength="82" lengthAdjust="spacingAndGlyphs">style them</text>
+  <rect class="pkg-caret" x="400" y="150" width="2" height="30" fill="#FFED4B" />
+  <rect x="154" y="203" width="17" height="17" rx="4" fill="#FFED4B" />
+  <path d="m158.5 211.5 3 3 5.5-6" fill="none" stroke="#141417" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="184" y="217" font-size="16" fill="#A1A1AA">Lists, tasks, and images</text>
+  <rect x="155" y="238" width="15" height="15" rx="3.5" fill="none" stroke="#5A5A64" stroke-width="2" />
+  <text x="184" y="251" font-size="16" fill="#A1A1AA">Blocks you build yourself</text>
+  <g class="pkg-pop" style="--o:50% 100%">
+    <path d="M301 102h108a8 8 0 0 1 8 8v22a8 8 0 0 1-8 8h-48l-6 6-6-6h-48a8 8 0 0 1-8-8v-22a8 8 0 0 1 8-8Z" fill="#33333B" />
+    <g font-size="15" text-anchor="middle">
+      <text x="313" y="126.5" font-weight="800" fill="#FFED4B">B</text>
+      <text x="341" y="126.5" font-style="italic" font-family="Georgia, serif" fill="#D4D4D8">I</text>
+      <text x="369" y="126.5" fill="#D4D4D8" text-decoration="underline">U</text>
+      <text x="397" y="126.5" fill="#D4D4D8" text-decoration="line-through">S</text>
+    </g>
+  </g>
+</svg>
