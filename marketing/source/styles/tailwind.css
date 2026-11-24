@@ -1,0 +1,1149 @@
+@import "./bootstrap-subset.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Community section
+ *
+ * Written as plain CSS because Bootstrap's `!important` utilities (.border, .p-5,
+ * .gap-*, ...) share names with Tailwind's and win over them.
+ */
+.community-heading {
+  margin: 0;
+  color: #f7f8fc;
+  font-size: clamp(1.5rem, 1.25rem + 1vw, 1.875rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.community-intro {
+  max-width: 46ch;
+  margin: 12px 0 0;
+  color: #a1a1aa;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* Shows */
+.shows {
+  display: grid;
+  gap: 40px;
+  margin-top: 40px;
+}
+
+.shows-stage {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+  /* Clears the sticky section nav. */
+  scroll-margin-top: 80px;
+}
+
+.shows-screen {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #141417;
+}
+
+.shows-poster {
+  position: relative;
+  display: block;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+.shows-poster img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Crops the thin letterbox bars that YouTube adds to some thumbnails. */
+  transform: scale(1.015);
+}
+
+/* In the corner, because the thumbnails put their subject in the middle. */
+.shows-play {
+  position: absolute;
+  right: 3%;
+  bottom: 5%;
+  width: clamp(48px, 9vw, 64px);
+  height: auto;
+}
+
+.shows-play circle {
+  fill: #ffed4b;
+  transition: fill 150ms ease;
+}
+
+.shows-play path {
+  fill: #141417;
+}
+
+.shows-poster:is(:hover, :focus-visible) .shows-play circle {
+  fill: #fff;
+}
+
+.shows-poster:focus-visible {
+  outline: 2px solid #ffed4b;
+  outline-offset: -4px;
+}
+
+.shows-player {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.shows-title {
+  color: #f7f8fc;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+.shows-description {
+  margin: 6px 0 0;
+  color: #a1a1aa;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.shows-youtube {
+  display: inline-block;
+  margin-top: 12px;
+  color: #ffed4b;
+  font-size: 0.9375rem;
+  text-decoration: underline;
+  text-decoration-color: rgb(255 237 75 / 0.5);
+  text-underline-offset: 4px;
+}
+
+.shows-youtube:hover {
+  color: #fff3a1;
+}
+
+.shows-youtube:focus-visible {
+  outline: 2px solid #ffed4b;
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.shows-list {
+  display: grid;
+  align-content: start;
+  gap: 20px;
+  min-width: 0;
+}
+
+.shows-name {
+  margin: 0;
+  color: #f7f8fc;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+
+.shows-expand {
+  display: none;
+}
+
+.shows-videos {
+  margin: 6px -8px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.shows-video {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 5px 8px;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.shows-video:hover {
+  background: rgb(255 255 255 / 0.04);
+}
+
+.shows-video[aria-current] {
+  background: rgb(255 255 255 / 0.08);
+}
+
+.shows-video:focus-visible {
+  outline: 2px solid #ffed4b;
+  outline-offset: -2px;
+}
+
+.shows-thumb {
+  flex: none;
+  width: 64px;
+  height: 36px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.shows-text {
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.shows-label {
+  display: block;
+  color: #d4d4d8;
+  font-size: 0.875rem;
+}
+
+.shows-video:is(:hover, [aria-current]) .shows-label {
+  color: #f7f8fc;
+}
+
+.shows-length {
+  display: block;
+  color: #8e8e98;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.shows-year {
+  margin-right: 10px;
+}
+
+.shows-video[aria-current] .shows-length {
+  color: #ffed4b;
+}
+
+/* On phones, each show folds away under its name. */
+@media (max-width: 599px) {
+  .shows-list {
+    gap: 0;
+    border-top: 1px solid rgb(255 255 255 / 0.08);
+  }
+
+  .shows-group {
+    border-bottom: 1px solid rgb(255 255 255 / 0.08);
+  }
+
+  .shows-name-text {
+    display: none;
+  }
+
+  .shows-expand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 56px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-align: left;
+  }
+
+  .shows-expand:focus-visible {
+    outline: 2px solid #ffed4b;
+    outline-offset: -2px;
+    border-radius: 6px;
+  }
+
+  .shows-count {
+    color: #8e8e98;
+    font-size: 0.875rem;
+    font-weight: 400;
+  }
+
+  .shows-expand svg {
+    width: 22px;
+    height: 22px;
+    margin-left: auto;
+    fill: none;
+    stroke: #a1a1aa;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transform: rotate(180deg);
+    transition: transform 250ms ease;
+  }
+
+  .shows-group--folded .shows-expand svg {
+    transform: none;
+  }
+
+  .shows-fold {
+    display: grid;
+    grid-template-rows: 1fr;
+    /* Room for the highlighted row, which reaches past the text. */
+    margin: 0 -8px;
+    padding: 0 8px;
+    overflow: hidden;
+    transition: grid-template-rows 250ms ease, visibility 250ms;
+  }
+
+  .shows-group--folded .shows-fold {
+    grid-template-rows: 0fr;
+    visibility: hidden;
+  }
+
+  .shows-videos {
+    min-height: 0;
+    margin-top: 0;
+    overflow: hidden;
+  }
+
+  .shows-videos li:last-child {
+    padding-bottom: 14px;
+  }
+}
+
+@media (max-width: 599px) and (prefers-reduced-motion: reduce) {
+  .shows-fold,
+  .shows-expand svg {
+    transition: none;
+  }
+}
+
+@media (min-width: 600px) {
+  .shows {
+    margin-top: 48px;
+  }
+
+  .shows-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 28px;
+  }
+}
+
+@media (min-width: 800px) {
+  .shows-stage {
+    grid-template-columns: minmax(0, 1fr) 30%;
+    align-items: end;
+    gap: 32px;
+  }
+
+  .shows-title {
+    font-size: 1.5rem;
+    line-height: 1.25;
+  }
+
+  .shows-description {
+    margin-top: 12px;
+  }
+
+  .shows-youtube {
+    margin-top: 20px;
+  }
+}
+
+@media (min-width: 980px) {
+  .shows-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/*
+ * Packages
+ *
+ * Every drawing is complete at rest. Hovering or focusing a package replays how it
+ * got there, so each animation must end in the drawing's resting state.
+ */
+.pkg-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px 16px;
+  margin: 40px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pkg--super_editor,
+.pkg--puck {
+  grid-column: 1 / -1;
+}
+
+.pkg-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 14px;
+}
+
+.pkg-link:focus-visible {
+  outline: 2px solid #ffed4b;
+  outline-offset: 6px;
+}
+
+.pkg-art {
+  aspect-ratio: 8 / 5;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #141417;
+  transition: background-color 200ms ease;
+}
+
+.pkg-art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.pkg-name {
+  margin-top: 14px;
+  color: #f7f8fc;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+
+.pkg-desc {
+  margin: 4px 0 0;
+  color: #a1a1aa;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.pkg-fund {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 56px;
+  padding-top: 32px;
+  border-top: 1px solid rgb(255 255 255 / 0.08);
+}
+
+.pkg-fund-text {
+  max-width: 52ch;
+  margin: 0;
+  color: #a1a1aa;
+  font-size: 1rem;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.pkg-fund-text strong {
+  color: #f7f8fc;
+  font-weight: 600;
+}
+
+.pkg-fund-actions {
+  display: flex;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  gap: 12px;
+}
+
+.pkg-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.07);
+  color: #f7f8fc;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 150ms ease;
+}
+
+.pkg-button-icon {
+  width: 0.96875em;
+  height: 1em;
+  fill: currentColor;
+}
+
+.pkg-button:hover {
+  background: rgb(255 255 255 / 0.13);
+  color: #f7f8fc;
+}
+
+.pkg-button:focus-visible {
+  outline: 2px solid #ffed4b;
+  outline-offset: 3px;
+}
+
+@media (min-width: 640px) {
+  .pkg-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 48px 20px;
+    margin-top: 48px;
+  }
+
+  .pkg {
+    grid-column: span 2;
+  }
+
+  .pkg--super_editor .pkg-art,
+  .pkg--puck .pkg-art {
+    aspect-ratio: 490 / 280;
+  }
+
+  .pkg-name {
+    margin-top: 16px;
+  }
+
+  .pkg--super_editor .pkg-name,
+  .pkg--puck .pkg-name {
+    font-size: 1.25rem;
+    letter-spacing: -0.015em;
+  }
+
+  .pkg--super_editor .pkg-desc,
+  .pkg--puck .pkg-desc {
+    font-size: 0.9375rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .pkg-fund {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+  }
+}
+
+@media (min-width: 900px) {
+  .pkg:not(.pkg--super_editor, .pkg--puck) {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 639px) {
+  .pkg-button {
+    flex: 1 0 auto;
+    justify-content: center;
+  }
+
+  .pkg--super_editor .pkg-art,
+  .pkg--puck .pkg-art {
+    aspect-ratio: 440 / 270;
+  }
+}
+
+.pkg-art :is(.pkg-pop, .pkg-select, .pkg-fan) {
+  transform-box: fill-box;
+}
+
+@media (hover: hover) {
+  .pkg-link:hover .pkg-art {
+    background: #111113;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pkg-link:is(:hover, :focus-visible) .pkg-pop {
+    transform-origin: var(--o);
+    animation: pkg-pop 320ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  }
+
+  .pkg--super_editor .pkg-link:is(:hover, :focus-visible) .pkg-pop {
+    animation-delay: 480ms;
+  }
+
+  .pkg-link:is(:hover, :focus-visible) .pkg-select {
+    transform-origin: left;
+    animation: pkg-grow-x 450ms steps(10) both;
+  }
+
+  .pkg-link:is(:hover, :focus-visible) .pkg-caret {
+    --from: -90px;
+    animation: pkg-slide-x 450ms steps(10) both;
+  }
+
+  .pkg-link:is(:hover, :focus-visible) .pkg-in {
+    animation: pkg-fade 160ms ease-out both;
+    animation-delay: calc(var(--d) * 70ms);
+  }
+
+  .pkg-link:is(:hover, :focus-visible) :is(.pkg-leader, .pkg-follower) {
+    animation: pkg-lead 1100ms linear both;
+  }
+
+  .pkg-link:is(:hover, :focus-visible) .pkg-dock {
+    animation: pkg-dock 700ms both;
+  }
+
+  .pkg-link:is(:hover, :focus-visible) .pkg-fan {
+    transform-origin: center;
+    animation: pkg-fan 420ms cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+    animation-delay: calc(600ms + var(--d) * 35ms);
+  }
+
+  .pkg-link:is(:hover, :focus-visible) .pkg-key {
+    animation: pkg-press 180ms ease-out both;
+    animation-delay: calc(var(--d) * 110ms);
+  }
+
+  .pkg-link:is(:hover, :focus-visible) .pkg-type {
+    animation: pkg-reveal 550ms steps(5) both;
+  }
+
+  .pkg-link:is(:hover, :focus-visible) .pkg-typecaret {
+    --from: -41px;
+    animation: pkg-slide-x 550ms steps(5) both;
+  }
+}
+
+@keyframes pkg-pop {
+  from { opacity: 0; transform: scale(0.85); }
+}
+
+@keyframes pkg-fade {
+  from { opacity: 0; }
+}
+
+@keyframes pkg-grow-x {
+  from { transform: scaleX(0); }
+}
+
+@keyframes pkg-slide-x {
+  from { transform: translateX(var(--from)); }
+}
+
+/* Dragged off the edge, released, and sprung back to its dock. */
+@keyframes pkg-dock {
+  0% { transform: translate(-110px, 34px); animation-timing-function: cubic-bezier(0.5, 0, 0.7, 0.4); }
+  55% { transform: translate(7px, -4px); animation-timing-function: ease-out; }
+  78% { transform: translate(-5px, 1px); animation-timing-function: ease-in-out; }
+  100% { transform: none; }
+}
+
+@keyframes pkg-fan {
+  from { opacity: 0; transform: translate(var(--x), var(--y)) scale(0.5); }
+}
+
+@keyframes pkg-press {
+  50% { transform: translateY(3px); }
+}
+
+@keyframes pkg-reveal {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+/* Sampled from the dashed path in the Follow the Leader drawing. */
+@keyframes pkg-lead {
+  0% { transform: translate(-168px, 34px); }
+  10% { transform: translate(-150px, 26px); }
+  20% { transform: translate(-138px, 9px); }
+  30% { transform: translate(-127px, -10px); }
+  40% { transform: translate(-114px, -26px); }
+  50% { transform: translate(-96px, -34px); }
+  60% { transform: translate(-75px, -32px); }
+  70% { transform: translate(-56px, -24px); }
+  80% { transform: translate(-39px, -13px); }
+  90% { transform: translate(-20px, -4px); }
+  100% { transform: none; }
+}
+
+/*
+ * My Work
+ *
+ * The clips keep their own frames. The layout does the playing: uneven widths and
+ * heights, loosely placed, with the dark clip larger than the two bright ones.
+ */
+.work {
+  display: flex;
+  flex-direction: column;
+  gap: 72px;
+  margin-top: 64px;
+}
+
+.work-item {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.work-tile {
+  position: relative;
+}
+
+.work-video {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 20px;
+}
+
+/* Trims 4px of the recording's height, which hides a dark line along its top edge. */
+.work-item--candlestick-chart .work-video {
+  aspect-ratio: 588 / 596;
+  object-fit: cover;
+}
+
+.work-toggle {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 40px;
+  height: 40px;
+  padding: 11px;
+  border: 0;
+  border-radius: 50%;
+  background: #33333b;
+  transition: opacity 150ms ease;
+}
+
+.work-toggle svg {
+  display: block;
+  fill: #f7f8fc;
+}
+
+.work-toggle:focus-visible {
+  outline: 2px solid #ffed4b;
+  outline-offset: 2px;
+}
+
+.work-tile:not(.work-tile--playing) .work-toggle-pause,
+.work-tile--playing .work-toggle-play {
+  display: none;
+}
+
+/* With a mouse, a running widget keeps its tile to itself until it's pointed at. */
+@media (hover: hover) {
+  .work-tile--playing:not(:hover) .work-toggle:not(:focus-visible) {
+    opacity: 0;
+  }
+}
+
+.work-caption {
+  margin-top: 18px;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+/* Without a mouse, the button can't hide, so it moves off of the widget. */
+@media (hover: none) {
+  .work-toggle {
+    right: 0;
+    bottom: -58px;
+  }
+
+  .work-caption {
+    padding-right: 56px;
+  }
+}
+
+/* The name and description read as one two-tone sentence. */
+.work-name,
+.work-description {
+  display: inline;
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.work-name {
+  color: #f7f8fc;
+  font-weight: 500;
+}
+
+.work-description {
+  color: #8e8e98;
+}
+
+.work-link {
+  display: inline-block;
+  margin-top: 8px;
+  color: #a1a1aa;
+  font-size: 0.875rem;
+  text-decoration: underline;
+  text-decoration-color: rgb(161 161 170 / 0.4);
+  text-underline-offset: 4px;
+  transition: color 150ms ease;
+}
+
+.work-link:hover {
+  color: #ffed4b;
+}
+
+.work-link:focus-visible {
+  outline: 2px solid #ffed4b;
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+@media (min-width: 760px) {
+  .work {
+    display: grid;
+    grid-template-columns: 23% 30% 23%;
+    justify-content: space-between;
+    align-items: start;
+    margin-top: 104px;
+  }
+
+  .work .work-item {
+    max-width: none;
+    margin: 0;
+  }
+
+  .work .work-item--candlestick-chart {
+    margin-top: 128px;
+  }
+
+  .work .work-item--facepile {
+    margin-top: 40px;
+  }
+
+  /* The clips drift at different rates as the page scrolls past them. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .work-item {
+        --drift: 12px;
+        animation: work-drift linear both;
+        animation-timeline: view();
+      }
+
+      .work-item--candlestick-chart {
+        --drift: 36px;
+      }
+
+      .work-item--facepile {
+        --drift: -20px;
+      }
+    }
+  }
+}
+
+@keyframes work-drift {
+  from { transform: translateY(var(--drift)); }
+  to { transform: translateY(calc(var(--drift) * -1)); }
+}
+
+/*
+ * Contact
+ *
+ * The figure from the hero conjures a ring of energy between its hands, which charges
+ * with each completed field: --charge runs from 0 to 1.
+ */
+html:has(.contact[open]) {
+  overflow: hidden;
+  scrollbar-gutter: stable;
+}
+
+.contact {
+  --charge: 0;
+  --figure: min(580px, 100vw);
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden auto;
+  border: 0;
+  background: transparent;
+  color-scheme: dark;
+}
+
+.contact[open] {
+  display: grid;
+}
+
+.contact::backdrop {
+  background: rgb(10 10 12 / 0.78);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.contact-stage {
+  position: relative;
+  width: min(100% - 32px, 480px);
+  margin: auto;
+  /* The card covers the bottom of the figure. */
+  padding: calc(var(--figure) * 0.334) 0 24px;
+}
+
+.contact-figure {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--figure);
+  aspect-ratio: 1024 / 418;
+  transform: translateX(-50%);
+  pointer-events: none;
+  user-select: none;
+}
+
+.contact-character {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: auto;
+}
+
+.contact-card {
+  position: relative;
+  padding: 36px 32px 32px;
+  border-radius: 20px;
+  background: #1c1c21;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 24px 64px rgb(0 0 0 / 0.6);
+}
+
+.contact-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Dark until the first field is completed. */
+.contact-ring-lit {
+  opacity: min(1, var(--charge) * 3);
+  transition: opacity 400ms ease;
+}
+
+/* Grows outward from the middle, until it reaches the hands. */
+.contact-ring-charge {
+  stroke-dasharray: var(--charge) 2;
+  stroke-dashoffset: calc((var(--charge) - 1) / 2);
+  transition: stroke-dasharray 600ms cubic-bezier(0.2, 0.8, 0.2, 1), stroke-dashoffset 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.contact-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 44px;
+  height: 44px;
+  padding: 12px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.contact-close svg {
+  display: block;
+  fill: none;
+  stroke: #a1a1aa;
+  stroke-width: 2;
+  stroke-linecap: round;
+  transition: stroke 150ms ease;
+}
+
+.contact-close:hover svg {
+  stroke: #f7f8fc;
+}
+
+.contact-heading {
+  margin: 0;
+  color: #f7f8fc;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.contact-heading:focus {
+  outline: none;
+}
+
+.contact-intro {
+  margin: 8px 0 0;
+  color: #a1a1aa;
+  font-size: 1rem;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.contact-fields {
+  display: grid;
+  gap: 18px 14px;
+  margin-top: 24px;
+}
+
+.contact-field label {
+  display: block;
+  margin-bottom: 6px;
+  color: #d4d4d8;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.contact-field :is(input, textarea) {
+  display: block;
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #3f3f49;
+  border-radius: 10px;
+  background: #141417;
+  color: #f7f8fc;
+  caret-color: #ffed4b;
+  /* 16px, because iOS zooms in on anything smaller. */
+  font-size: 1rem;
+  line-height: 1.5;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.contact-field textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.contact-field :is(input, textarea):hover {
+  border-color: #5a5a64;
+}
+
+.contact-field :is(input, textarea):focus {
+  outline: none;
+  border-color: #ffed4b;
+  box-shadow: 0 0 0 3px rgb(255 237 75 / 0.16);
+}
+
+.contact-field :is(input, textarea)[aria-invalid] {
+  border-color: #ff8a80;
+}
+
+.contact-field input:autofill {
+  box-shadow: inset 0 0 0 100px #141417;
+  -webkit-text-fill-color: #f7f8fc;
+}
+
+.contact-error {
+  display: none;
+  margin: 6px 0 0;
+  color: #ff8a80;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+[aria-invalid] + .contact-error {
+  display: block;
+}
+
+.contact-failure {
+  margin: 18px 0 0;
+  color: #ff8a80;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.contact-failure a {
+  color: inherit;
+}
+
+.contact-send {
+  display: block;
+  width: 100%;
+  min-height: 50px;
+  margin-top: 24px;
+  border: 0;
+  border-radius: 12px;
+  background: #ffed4b;
+  color: #141417;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  transition: background-color 150ms ease, box-shadow 600ms ease;
+}
+
+.contact-send:hover {
+  background: #fff380;
+}
+
+.contact-send:disabled {
+  background: #a89d3f;
+}
+
+.contact-card--charged .contact-send:not(:disabled) {
+  box-shadow: 0 0 32px rgb(255 237 75 / 0.35);
+}
+
+:is(.contact-send, .contact-close, .contact-failure a):focus-visible {
+  outline: 2px solid #ffed4b;
+  outline-offset: 3px;
+}
+
+.contact-sent-email {
+  color: #f7f8fc;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 480px) {
+  .contact-fields {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .contact-field--wide {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 479px) {
+  .contact-card {
+    padding: 28px 20px 20px;
+  }
+
+  .contact-close {
+    top: 8px;
+    right: 6px;
+  }
+}
+
+@media (max-height: 780px) {
+  .contact {
+    --figure: min(440px, 100vw);
+  }
+}
+
+/* Short screens, such as a phone on its side, need the room for the form. */
+@media (max-height: 560px) {
+  .contact-stage {
+    padding-top: 32px;
+  }
+
+  .contact-figure {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .contact[open] .contact-card {
+    animation: contact-rise 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .contact[open] .contact-figure {
+    animation: contact-conjure 560ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .contact-sent:not([hidden]) {
+    animation: contact-rise 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-ring-lit,
+  .contact-ring-charge,
+  .contact-send {
+    transition: none;
+  }
+}
+
+@keyframes contact-rise {
+  from { opacity: 0; transform: translateY(16px); }
+}
+
+@keyframes contact-conjure {
+  from { opacity: 0; transform: translate(-50%, 48px); }
+}
